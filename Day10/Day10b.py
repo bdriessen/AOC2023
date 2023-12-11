@@ -110,6 +110,15 @@ def part2(fname):
     m = read_input(fname)
     mr, mc = len(m), len(m[0])
 
+    # Find start nodes
+    start = []
+    for kr, row in enumerate(m):
+        for kc, c in enumerate(row):
+            if m[kr][kc] == 'S':
+                start = (kr, kc)
+                m[kr].replace('S', 'F')
+    ic(start)
+
     map = ['.' * (mc+2)]
     for i in range(mr):
         map.append('.' + m[i] + '.')
@@ -120,6 +129,14 @@ def part2(fname):
         new_map.append('O' + '*' * mc + 'O')
     new_map.append('O' * (mc+2))
 
+    vis = [[False] * (mc+2)]
+    for i in range(mr):
+        vis_row = [False]
+        for j in range(mc):
+            vis_row.extend([visited[i][j]])
+        vis_row.extend([False])
+        vis.append(vis_row)
+    ic(len(vis), len(vis[0]))
     # ic(map)
     # ic(new_map)
 
@@ -140,35 +157,68 @@ def part2(fname):
     # ic(new_map)
 
     # Calculate row by row the distance to a O of all '.' elements of map
-    in_tunnel = True
+    nrvbar = 0
     for irow in range(1, mr-1):
-        dist = 0
+        inside = False
+        on_A = on_B = on_C = False
         for icol in range (1, mc-1):
             c = map[irow][icol]
-            if c == 'O':
-                in_tunnel = False
-                dist = 0
-            elif c != '.':
-                if not in_tunnel:
-                    if visited[irow][icol]:
-                        dist += 1
-                        in_tunnel = True
-            else:
-                # c == '.'
-                if dist%2 == 0:
-                    new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
-                    map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
-                    dist = 0
-                else:
-                    new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
-                    map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
-                    dist = 1
+            prev_c = map[irow][icol-1]
+            if c != '|':
+                nrvbar = 0
+            if c in ['O', 'I']:
+                on_A = on_B = on_C = False
+            elif c != '.' and vis[irow][icol]:
+                if c == '|':
+                    on_A = True
+                    nrvbar += 1
+                elif c == 'L':
+                    on_B = True
+                elif c == 'F':
+                    on_C = True
+            else:   # c == '.'
+                if prev_c in ['O', 'I']:
+                    new_map[irow] = new_map[irow][:icol] + prev_c + new_map[irow][icol+1:]
+                    map[irow] = map[irow][:icol] + prev_c + map[irow][icol+1:]
+                elif on_A:
+                    for i in range(nrvbar):
+                        inside = not inside
+                    if inside:
+                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
+                    else:
+                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
+                elif on_B:
+                    if prev_c == '7':
+                        inside = not inside
+                    if inside:
+                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
+                    else:
+                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
+                elif on_C:
+                    if prev_c == 'J':
+                        inside = not inside
+                    if inside:
+                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
+                    else:
+                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
+                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
+                on_A = on_B = on_C = False
 
     ic(new_map)
+    # Count nr of I's
+    nr_I = 0
+    for irow in range(1, mr-1):
+        for icol in range (1, mc-1):
+            if new_map[irow][icol] == 'I':
+                nr_I += 1
 
 
-
-    return 0
+    return nr_I
 
 
 real = False
