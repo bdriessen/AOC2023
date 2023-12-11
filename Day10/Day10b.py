@@ -27,14 +27,15 @@ def accessible(n1, n2, map):
     if n2[0] < 0 or n2[0] >= len(map) or n2[1] < 0 or n2[1] >= len(map[0]):
         return False
 
-
-#    if map[n1[0]][n1[1]] == 'S' and map[n2[0]][n2[1]] != '.':
-#        return True
-#    if map[n1[0]][n1[1]] != '.' and map[n2[0]][n2[1]] == 'S':
-#        return True
-    if map[n1[0]][n1[1]] == 'S' or map[n2[0]][n2[1]] == 'S':
-        if n1[0] == n2[0]+1 or n1[0] == n2[0]-1:
+    if not real:
+        if map[n1[0]][n1[1]] == 'S' and map[n2[0]][n2[1]] != '.':
             return True
+        if map[n1[0]][n1[1]] != '.' and map[n2[0]][n2[1]] == 'S':
+            return True
+    else:
+        if map[n1[0]][n1[1]] == 'S' or map[n2[0]][n2[1]] == 'S':
+            if n1[0] == n2[0]+1 or n1[0] == n2[0]-1:
+                return True
 
     # Find relative position of n1 to n2
     if n1[0] == n2[0]:
@@ -66,7 +67,6 @@ def find_next_nodes(next_nodes, map, visited, crawl):
         ic(neighbor_candidates)
         for nc in neighbor_candidates:
             if accessible(nc, node, map):
-                ic(nc, node)
                 if not visited[nc]:
                     new_next_nodes.append(nc)
                     new_visited[nc] = True
@@ -87,9 +87,7 @@ def part1(fname):
         for kc, c in enumerate(row):
             if map[kr][kc] == 'S':
                 start = (kr, kc)
-    ic.enable()
     ic(start)
-    ic.disable()
     next_nodes = [start]
     visited[start] = True
 
@@ -101,12 +99,14 @@ def part1(fname):
 
     # Find longest path
     longest = np.max(crawl)
+    ic(longest, visited)
 
-    return longest
+    return longest, visited
 
 
 # Part 2
 def part2(fname):
+    res1, visited = part1(fname)
     m = read_input(fname)
     mr, mc = len(m), len(m[0])
 
@@ -140,15 +140,21 @@ def part2(fname):
     # ic(new_map)
 
     # Calculate row by row the distance to a O of all '.' elements of map
+    in_tunnel = True
     for irow in range(1, mr-1):
         dist = 0
         for icol in range (1, mc-1):
             c = map[irow][icol]
             if c == 'O':
+                in_tunnel = False
                 dist = 0
             elif c != '.':
-                dist += 1
+                if not in_tunnel:
+                    if visited[irow][icol]:
+                        dist += 1
+                        in_tunnel = True
             else:
+                # c == '.'
                 if dist%2 == 0:
                     new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
                     map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
@@ -156,7 +162,7 @@ def part2(fname):
                 else:
                     new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
                     map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
-                    dist += 1
+                    dist = 1
 
     ic(new_map)
 
@@ -165,12 +171,12 @@ def part2(fname):
     return 0
 
 
-
+real = False
+verbose = True
+part = 2
 
 def main():
-    real = False
-    verbose = True
-    part = 2
+
 
     if verbose:
         ic.enable()
@@ -186,8 +192,13 @@ def main():
         fname = "testinput.txt"
 
     if part == 1:
-        res1 = part1(fname)
-        print("Part 1: ", res1)
+        res1, visited = part1(fname)
+        nr_v=0
+        for i in range(len(visited)):
+            for j in range(len(visited[0])):
+                if visited[i][j]:
+                    nr_v += 1
+        print("Part 1: ", res1, nr_v)
     else:
         res2 = part2(fname)
         print("Part 2: ", res2)
