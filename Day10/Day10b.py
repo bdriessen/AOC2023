@@ -1,4 +1,4 @@
-#
+# Test
 # Advent of code 2023: Day 02
 #
 # Author: Bart Driessen
