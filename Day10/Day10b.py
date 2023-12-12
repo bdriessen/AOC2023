@@ -116,7 +116,10 @@ def part2(fname):
         for kc, c in enumerate(row):
             if m[kr][kc] == 'S':
                 start = (kr, kc)
-                m[kr].replace('S', 'F')
+                if real:
+                    m[kr] = m[kr].replace('S', '|')
+                else:
+                    m[kr].replace('S', 'F')
     ic(start)
 
     map = ['.' * (mc+2)]
@@ -157,58 +160,58 @@ def part2(fname):
     # ic(new_map)
 
     # Calculate row by row the distance to a O of all '.' elements of map
-    nrvbar = 0
+
     for irow in range(1, mr-1):
+        must_switch = False
         inside = False
-        on_A = on_B = on_C = False
+        from_North = from_South = False
+
         for icol in range (1, mc-1):
             c = map[irow][icol]
             prev_c = map[irow][icol-1]
-            if c != '|':
-                nrvbar = 0
+
             if c in ['O', 'I']:
-                on_A = on_B = on_C = False
+                from_North = from_South = False
+
             elif c != '.' and vis[irow][icol]:
                 if c == '|':
-                    on_A = True
-                    nrvbar += 1
+                    must_switch = not must_switch
+                    from_North = from_South = False
                 elif c == 'L':
-                    on_B = True
+                    from_North = True
+                    from_South = False
                 elif c == 'F':
-                    on_C = True
-            else:   # c == '.'
-                if prev_c in ['O', 'I']:
-                    new_map[irow] = new_map[irow][:icol] + prev_c + new_map[irow][icol+1:]
-                    map[irow] = map[irow][:icol] + prev_c + map[irow][icol+1:]
-                elif on_A:
-                    for i in range(nrvbar):
-                        inside = not inside
-                    if inside:
-                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
-                    else:
-                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
-                elif on_B:
-                    if prev_c == '7':
-                        inside = not inside
-                    if inside:
-                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
-                    else:
-                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
-                elif on_C:
-                    if prev_c == 'J':
-                        inside = not inside
-                    if inside:
-                        new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
-                    else:
-                        new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
-                        map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
-                on_A = on_B = on_C = False
+                    from_South = True
+                    from_North = False
+                elif c == '7':
+                    if from_North:
+                        must_switch = not must_switch
+                    from_North = from_South = False
+                elif c == 'J':
+                    if from_South:
+                        must_switch = not must_switch
+                    from_North = from_South = False
 
+            else:   # c == '.'
+                from_North = from_South = False
+
+                if must_switch:
+                    inside = not inside
+
+#                if prev_c == 'O':
+#                    inside = False
+#                elif prev_c == 'I':
+#                    inside = True
+
+                if inside:
+                    new_map[irow] = new_map[irow][:icol] + 'I' + new_map[irow][icol+1:]
+                    map[irow] = map[irow][:icol] + 'I' + map[irow][icol+1:]
+                else:
+                    new_map[irow] = new_map[irow][:icol] + 'O' + new_map[irow][icol+1:]
+                    map[irow] = map[irow][:icol] + 'O' + map[irow][icol+1:]
+                must_switch = False
+#            if irow==7:
+#                ic(icol, c, prev_c, inside, from_North, from_South, must_switch)
     ic(new_map)
     # Count nr of I's
     nr_I = 0
@@ -221,12 +224,11 @@ def part2(fname):
     return nr_I
 
 
-real = False
-verbose = True
+real = True
+verbose = False
 part = 2
 
 def main():
-
 
     if verbose:
         ic.enable()
