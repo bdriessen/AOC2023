@@ -47,35 +47,84 @@ def part1(fname):
 
     ic(galaxies, rows, cols)
 
-    for row in rows:
-        # Shift all galaxies below row one down
-        galaxies = [[i+1,j] if i >= row else [i,j] for i,j in galaxies]
 
-    new_rows
-    for i in range(len(rows), 0, -1):
-        for j in range(i+1, len(rows)):
-            rows[j] += 1
+    for i in range(len(rows)-1, -1, -1):
+        # Shift all galaxies down
+        for galaxy in galaxies:
+            if galaxy[0] > rows[i]:
+                galaxy[0] += 1
+        rows = rows[:i] + [rows[i]] + [r+1 for r in rows[i:]]
 
-        rows = rows[:i] + [i] + rows[i:]
+    for j in range(len(cols)-1, -1, -1):
+        # Shift all galaxies right
+        for galaxy in galaxies:
+            if galaxy[1] > cols[j]:
+                galaxy[1] += 1
+        cols = cols[:j] + [cols[j]] + [c+1 for c in cols[j:]]
 
-    for i in range(len(cols)):
-        cols[i:] += 1
-        cols = cols[:i] + [i] + cols[i:]
+    dist = 0
+    for g1 in galaxies:
+        for g2 in galaxies:
+            dist += abs(g1[0]-g2[0]) + abs(g1[1]-g2[1])
 
-    ic(galaxies, rows, cols)
+    ic(int(dist/2))
 
-    return 0
+    return int(dist/2)
 
 
 # Part 2
 def part2(fname):
-    res1 = part1(fname)
-    return 0
+    res = read_input(fname)
+
+    universe = np.array([list(line) for line in res])
+
+    ic(universe)
+    galaxies = []
+    for i in range(0, len(universe)):
+        for j in range(0, len(universe[0])):
+            if universe[i,j] == '#':
+                galaxies.append([i,j])
+
+    # Find rows and columns containing only '.'
+    rows = []
+    cols = []
+    for i in range(0, len(universe)):
+        if np.all(universe[i,:] == '.'):
+            rows.append(i)
+    for j in range(0, len(universe[0])):
+        if np.all(universe[:,j] == '.'):
+            cols.append(j)
+
+    ic(galaxies, rows, cols)
+
+    for size in range(1000000):
+        for i in range(len(rows) - 1, -1, -1):
+            # Shift all galaxies down
+            for galaxy in galaxies:
+                if galaxy[0] > rows[i]:
+                    galaxy[0] += 1
+            rows = rows[:i] + [rows[i]] + [r + 1 for r in rows[i:]]
+
+        for j in range(len(cols) - 1, -1, -1):
+            # Shift all galaxies right
+            for galaxy in galaxies:
+                if galaxy[1] > cols[j]:
+                    galaxy[1] += 1
+            cols = cols[:j] + [cols[j]] + [c + 1 for c in cols[j:]]
+
+    dist = 0
+    for g1 in galaxies:
+        for g2 in galaxies:
+            dist += abs(g1[0]-g2[0]) + abs(g1[1]-g2[1])
+
+    ic(int(dist/2))
+
+    return int(dist/2)
 
 
 real = False
 verbose = True
-part = 1
+part = 2
 
 def main():
 
