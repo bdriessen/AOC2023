@@ -40,6 +40,8 @@ def solve(spring, order, seq):
     if len(seq) == len(order):
         #ic(seq)
         seqs.append(seq)
+        if is_matching(seq, order, spring):
+            solutions.append(seq)
     else:
         if not seq:
             first_start_next_seq = 0
@@ -107,7 +109,8 @@ def part1(fname):
             nr_matches = len(matches)
             #ic(matches)
             total_nr_matches += nr_matches
-    return total_nr_matches
+        ic(solutions)
+    return len(solutions)
 
 
 # Part 2
@@ -116,10 +119,11 @@ def part2(fname):
     return 0
 
 
-real = False
-verbose = True
+real = True
+verbose = False
 part = 1
 
+solutions = []
 
 def main():
     if verbose:
