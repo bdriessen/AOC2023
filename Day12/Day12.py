@@ -34,34 +34,39 @@ def read_input(fn):
 
     return springs, orders
 
-def solve(spring, seq, k): # k is the index of the current element in the sequence
-    if len(seq) == len(spring):
-        return seq
-    else:
-        idx_last_segment = len(seq)-1
-        if extension_possible:
-            # Extend the sequence
-            return solve(spring, seq + [0], k+1)
-        else:
-            # Find next element in sequence
-            if successor_possible:
-                return solve(spring, successor, k)
-            else:
-                return []
 
-
-def find_all_seqs(spring, orders):
+def solve(spring, order, seq):
     seqs = []
+    if len(seq) == len(order):
+        #ic(seq)
+        seqs.append(seq)
+    else:
+        if not seq:
+            first_start_next_seq = 0
+        else:
+            first_start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
+
+        for i in range(first_start_next_seq, len(spring)):
+            #ic(i, seq, first_start_next_seq)
+            extension_possible = True
+            len_spring = len(spring)
+            if i + order[len(seq)] > len(spring):
+                extension_possible = False
+
+            if extension_possible:
+                # Solve for extended sequence
+                solve(spring, order, seq + [i])
+
+    ic(seqs)
     return seqs
 
-def is_matching(seq, l, spring):
-    ####
-    # NOT TESTED YET
-    #####
+
+def is_matching(seq, order, spring):
     sol_spring = ['.' for i in range(len(spring))]
     for i in range(len(seq)):
-        for j in range(l[i]):
-            sol_spring[i+j] = '#'
+        start = seq[i]
+        for j in range(order[i]):
+            sol_spring[start+j] = '#'
 
     is_ok = True
     for i in range(len(spring)):
@@ -77,6 +82,8 @@ def is_matching(seq, l, spring):
             is_ok = False
             break
     return is_ok
+
+
 # Part 1
 def part1(fname):
     springs, orders = read_input(fname)
@@ -85,17 +92,22 @@ def part1(fname):
     for i in range(len(springs)):
         matches = [] # List of all possible matches
 
-        seq = orders[i][0] # First order
         # Find all possible matches
         # Start with allocating first order to first slot
-        seqs = find_all_seqs(springs[i], orders[i])
-        for seq in seqs:
-            # Find all possible matches
-            if is_matching(seq, orders[i], springs[i]):
-                matches.append(seq)
-        nr_matches = len(matches)
-    total_nr_matches += nr_matches
-    return 0
+        for j in range(len(springs[i])):
+            start = [j]
+            seqs = solve(springs[i], orders[i], start)
+            ic("returned seqs", seqs)
+
+            for seq in seqs:
+                if is_matching(seq, orders[i], springs[i]):
+                    ic('match')
+                    matches.append(seq)
+                    ic(seq)
+            nr_matches = len(matches)
+            #ic(matches)
+            total_nr_matches += nr_matches
+    return total_nr_matches
 
 
 # Part 2
