@@ -43,21 +43,35 @@ def solve(spring, order, seq):
         if is_matching(seq, order, spring):
             #solutions.append(seq)
             nr_of_solutions += 1
+            ic(nr_of_solutions, seq)
+            print(nr_of_solutions, seq)
 
     else:
         if not seq:
             first_start_next_seq = 0
+            last_start_next_seq = len(spring) -1
+            min_size_remaining_seq = 0
         else:
             first_start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
+            # calculate last start next seq that might be useful
+            # Then calculate the minimum size of the remaining sequence
+            min_size_remaining_seq = 0
+            for i in range(len(seq)+1, len(order)):
+                min_size_remaining_seq += order[i] + 1 # +1 because of the mandatory ?
+            #ic(seq, min_size_remaining_seq)
+            # Then calculate the last useful index:
+            last_start_next_seq = len(spring) - min_size_remaining_seq - 1
 
-        for i in range(first_start_next_seq, len(spring)):
+        for i in range(first_start_next_seq, last_start_next_seq+1):
             #ic(i, seq, first_start_next_seq)
             extension_possible = True
-            if i + order[len(seq)] > len(spring):
+            if i + order[len(seq)] > len(spring) - min_size_remaining_seq:
                 extension_possible = False
 
             if extension_possible:
                 # Solve for extended sequence
+                if i==first_start_next_seq and verbose:
+                    print("investigating", i, seq)
                 solve(spring, order, seq + [i])
 
     #ic(seqs)
@@ -104,6 +118,7 @@ def part1(fname):
 def part2(fname):
     global nr_of_solutions
     springs, orders = read_input(fname)
+    # ic(orders)
     springs2 = []
     orders2 = []
     for spring in springs:
@@ -112,7 +127,7 @@ def part2(fname):
     for order in orders:
         new_order = order+order+order+order+order
         orders2.append(new_order)
-    ic(springs2, orders2)
+    # ic(orders2)
 
     total_nr_of_solutions = 0
     for i in range(len(springs)):
@@ -124,7 +139,7 @@ def part2(fname):
 
 
 real = False
-verbose = True
+verbose = False
 part = 2
 
 solutions = []
