@@ -11,7 +11,6 @@ import numpy as np
 import time
 from icecream import ic
 
-
 # Read input file
 def read_input(fn):
     springs = []
@@ -30,18 +29,21 @@ def read_input(fn):
         for token in tokens[1:]:
             num = [int(i) for i in re.findall(r'\d+', token)]
             orders.append(num)
-    ic(springs, orders)
+#    ic(springs, orders)
 
     return springs, orders
 
-
 def solve(spring, order, seq):
+    global nr_of_solutions
+    #ic(seq)
     seqs = []
     if len(seq) == len(order):
         #ic(seq)
-        seqs.append(seq)
+        #seqs.append(seq)
         if is_matching(seq, order, spring):
-            solutions.append(seq)
+            #solutions.append(seq)
+            nr_of_solutions += 1
+
     else:
         if not seq:
             first_start_next_seq = 0
@@ -51,7 +53,6 @@ def solve(spring, order, seq):
         for i in range(first_start_next_seq, len(spring)):
             #ic(i, seq, first_start_next_seq)
             extension_possible = True
-            len_spring = len(spring)
             if i + order[len(seq)] > len(spring):
                 extension_possible = False
 
@@ -59,7 +60,7 @@ def solve(spring, order, seq):
                 # Solve for extended sequence
                 solve(spring, order, seq + [i])
 
-    ic(seqs)
+    #ic(seqs)
     return seqs
 
 
@@ -88,42 +89,47 @@ def is_matching(seq, order, spring):
 
 # Part 1
 def part1(fname):
+    global nr_of_solutions
     springs, orders = read_input(fname)
-
-    total_nr_matches = nr_matches = 0
+    total_nr_of_solutions = 0
     for i in range(len(springs)):
-        matches = [] # List of all possible matches
-
-        # Find all possible matches
-        # Start with allocating first order to first slot
-        for j in range(len(springs[i])):
-            start = [j]
-            seqs = solve(springs[i], orders[i], start)
-            ic("returned seqs", seqs)
-
-            for seq in seqs:
-                if is_matching(seq, orders[i], springs[i]):
-                    ic('match')
-                    matches.append(seq)
-                    ic(seq)
-            nr_matches = len(matches)
-            #ic(matches)
-            total_nr_matches += nr_matches
-        ic(solutions)
-    return len(solutions)
+        nr_of_solutions = 0
+        solve(springs[i], orders[i], [])
+        total_nr_of_solutions += nr_of_solutions
+        ic(i, nr_of_solutions)
+    return total_nr_of_solutions
 
 
 # Part 2
 def part2(fname):
-    springs = read_input(fname)
-    return 0
+    global nr_of_solutions
+    springs, orders = read_input(fname)
+    springs2 = []
+    orders2 = []
+    for spring in springs:
+        new_spring = spring+'?'+spring+'?'+spring+'?'+spring+'?'+spring
+        springs2.append(new_spring)
+    for order in orders:
+        new_order = order+order+order+order+order
+        orders2.append(new_order)
+    ic(springs2, orders2)
+
+    total_nr_of_solutions = 0
+    for i in range(len(springs)):
+        nr_of_solutions = 0
+        solve(springs2[i], orders2[i], [])
+        total_nr_of_solutions += nr_of_solutions
+        ic(i, nr_of_solutions)
+    return total_nr_of_solutions
 
 
-real = True
-verbose = False
-part = 1
+real = False
+verbose = True
+part = 2
 
 solutions = []
+nr_of_solutions = 0
+
 
 def main():
     if verbose:
