@@ -252,7 +252,9 @@ def solve3(spring, order):
             children = get_children(node, spring, order)
             # Add children to the queue
             for child in children:
-                queue.append(child)
+                if still_possible(child, order):
+                    queue.append(child)
+    return 0
 
 
 def is_matching(seq, order, spring):
