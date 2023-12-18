@@ -176,6 +176,85 @@ def solve2(spring, order, seq):
     return
 
 
+def get_children(node, spring, order):
+    children = []
+
+    if len(node['ch']) == 1:
+        if node['ch'][0] == '.':
+            # Add child with a dot
+            id = node['id'] + '.'
+            child = {"id": id, 'ch': [], 'amount': node['amount']+1}
+            if node['amount'] < len(spring):
+                if spring[node['amount']] == '.':
+                    child['ch'] = ['.']
+                elif spring[node['amount']] == '#':
+                    child['ch'] = ['#']
+                else:
+                    child['ch'] = ['.', '#']
+            children.append(child)
+        else:
+            # Add child with a #
+            id = node['id'] + '#'
+            child = {"id": id, 'ch': [], 'amount': node['amount']+1}
+            if node['amount'] < len(spring):
+                if spring[node['amount']] == '.':
+                    child['ch'] = ['.']
+                elif spring[node['amount']] == '#':
+                    child['ch'] = ['#']
+                else:
+                    child['ch'] = ['.', '#']
+            children.append(child)
+    else:
+        # Add child with a dot and a child with a #
+        id = node['id'] + '.'
+        child = {"id": id, 'ch': [], 'amount': node['amount']+1}
+        if node['amount'] < len(spring):
+            if spring[node['amount']] == '.':
+                child['ch'] = ['.']
+            elif spring[node['amount']] == '#':
+                child['ch'] = ['#']
+            else:
+                child['ch'] = ['.', '#']
+        children.append(child)
+        id = node['id'] + '#'
+        child = {"id": id, 'ch': [], 'amount': node['amount']+1}
+        if node['amount'] < len(spring):
+            if spring[node['amount']] == '.':
+                child['ch'] = ['.']
+            elif spring[node['amount']] == '#':
+                child['ch'] = ['#']
+            else:
+                child['ch'] = ['.', '#']
+    return children
+
+def solve3(spring, order):
+    # Breadth first search implementation
+    # Start with empty sequence
+    nodes = []
+    node = {"id": spring[0], 'ch': [], 'amount': 0}
+    if spring[node['amount']] == '.':
+        node['ch'] = ['.']
+    elif spring[node['amount']] == '#':
+        node['ch'] = ['#']
+    else:
+        node['ch'] = ['.', '#']
+    nodes.append(node)
+    queue = [node]
+    visited = []
+
+    while queue:
+        # Dequeue a node
+        node = queue.pop(0)
+        # Check if the node is visited
+        if node not in visited:
+            visited.append(node)
+            # Get all neighbours of the node
+            children = get_children(node, spring, order)
+            # Add children to the queue
+            for child in children:
+                queue.append(child)
+
+
 def is_matching(seq, order, spring):
     sol_spring = ['.' for i in range(len(spring))]
     for i in range(len(seq)):
