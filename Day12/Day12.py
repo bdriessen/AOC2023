@@ -33,6 +33,22 @@ def read_input(fn):
 
     return springs, orders
 
+
+def print_seq(seq, order, spring):
+    sol_spring = ['.' for i in range(len(spring))]
+    for i in range(len(seq)):
+        start = seq[i]
+        for j in range(order[i]):
+            sol_spring[start+j] = '#'
+
+    # print sol_spring string at the of the line overwriting the previous line
+    print("\033[F"*len(spring), end="")
+    # convert sol_spring to string
+    sol_spring = ''.join(sol_spring)
+    print(sol_spring)
+    return
+
+
 def solve(spring, order, seq):
     global nr_of_solutions
     #ic(seq)
@@ -61,21 +77,103 @@ def solve(spring, order, seq):
             #ic(seq, min_size_remaining_seq)
             # Then calculate the last useful index:
             last_start_next_seq = len(spring) - min_size_remaining_seq - 1
+            #print("Last start", last_start_next_seq, seq)
 
         for i in range(first_start_next_seq, last_start_next_seq+1):
+            will_not_fit = False
+
+            for j in range(order[len(seq)]):
+                if i+j >= len(spring):
+                    will_not_fit = True
+                elif spring[i+j] == '.':
+                    will_not_fit = True
+                after_seq_index = i + order[len(seq)]
+                if after_seq_index < len(spring):
+                    if spring[after_seq_index] in ['#', '?']:
+                        will_not_fit = True
+
+            if will_not_fit:
+                continue
+
+            #print(i)
             #ic(i, seq, first_start_next_seq)
             extension_possible = True
             if i + order[len(seq)] > len(spring) - min_size_remaining_seq:
                 extension_possible = False
 
             if extension_possible:
+                #print_seq(seq, order, spring)
                 # Solve for extended sequence
                 if i==first_start_next_seq and verbose:
                     print("investigating", i, seq)
                 solve(spring, order, seq + [i])
 
     #ic(seqs)
-    return seqs
+    return
+
+
+def solve2(spring, order, seq):
+    global nr_of_solutions
+    #ic(seq)
+    seqs = []
+    if len(seq) == len(order):
+        #ic(seq)
+        #seqs.append(seq)
+        if is_matching(seq, order, spring):
+            #solutions.append(seq)
+            nr_of_solutions += 1
+            ic(nr_of_solutions, seq)
+            #print(nr_of_solutions, seq)
+
+    else:
+        if not seq:
+            loc_next_seq = 0
+            last_seq = len(order)
+            min_size_remaining_seq = 0
+            idx_next_seq = 0
+            start_next_seq = 0
+        else:
+            start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
+            idx_next_seq = len(seq)
+
+        min_size_remaining_seq = 0
+        for i in range(len(seq) + 1, len(order)):
+            min_size_remaining_seq += order[i] + 1  # +1 because of the mandatory ?
+        # ic(seq, min_size_remaining_seq)
+        # Then calculate the last useful index:
+        last_start_next_seq = len(spring) - min_size_remaining_seq - 1
+
+        for loc in range(start_next_seq, len(spring)):
+            will_fit = True
+            try_next_loc = True
+
+            if loc > last_start_next_seq:
+                will_fit = False
+                try_next_loc = False
+
+            # Check if the entire sequence will fit
+            for i in range(order[idx_next_seq]):
+                if loc+i >= len(spring):
+                    will_fit = False
+                    try_next_loc = False
+                elif spring[loc+i] not in ['#', '?']:
+                    will_fit = False
+
+            # Check if after placing the sequence on this location, there is a dot
+            idx_after_seq = loc + order[idx_next_seq]
+            if idx_after_seq < len(spring):
+                if spring[idx_after_seq] not in ['.', '?']:
+                    will_fit = False
+
+            # print("investigating", seq + [loc])
+            if will_fit:
+                solve2(spring, order, seq + [loc])
+
+            # Only try next location if we can place a dot on this location or if there is already a dot
+            if spring[loc] == '#' or not try_next_loc:
+                break
+
+    return
 
 
 def is_matching(seq, order, spring):
@@ -107,8 +205,9 @@ def part1(fname):
     springs, orders = read_input(fname)
     total_nr_of_solutions = 0
     for i in range(len(springs)):
+
         nr_of_solutions = 0
-        solve(springs[i], orders[i], [])
+        solve2(springs[i], orders[i], [])
         total_nr_of_solutions += nr_of_solutions
         ic(i, nr_of_solutions)
     return total_nr_of_solutions
@@ -131,10 +230,11 @@ def part2(fname):
 
     total_nr_of_solutions = 0
     for i in range(len(springs)):
+        print("Solving spring", i)
         nr_of_solutions = 0
-        solve(springs2[i], orders2[i], [])
+        solve2(springs2[i], orders2[i], [])
         total_nr_of_solutions += nr_of_solutions
-        ic(i, nr_of_solutions)
+        print(i, nr_of_solutions)
     return total_nr_of_solutions
 
 
