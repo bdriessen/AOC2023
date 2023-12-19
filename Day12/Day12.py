@@ -115,10 +115,8 @@ def solve(spring, order, seq):
 def solve2(spring, order, seq):
     global nr_of_solutions
     #ic(seq)
-    seqs = []
     if len(seq) == len(order):
         #ic(seq)
-        #seqs.append(seq)
         if is_matching(seq, order, spring):
             #solutions.append(seq)
             nr_of_solutions += 1
@@ -127,9 +125,6 @@ def solve2(spring, order, seq):
 
     else:
         if not seq:
-            loc_next_seq = 0
-            last_seq = len(order)
-            min_size_remaining_seq = 0
             idx_next_seq = 0
             start_next_seq = 0
         else:
@@ -140,7 +135,8 @@ def solve2(spring, order, seq):
         for i in range(len(seq) + 1, len(order)):
             min_size_remaining_seq += order[i] + 1  # +1 because of the mandatory ?
         # ic(seq, min_size_remaining_seq)
-        # Then calculate the last useful index:
+
+        # Then calculate the last useful index for placing the next sequence
         last_start_next_seq = len(spring) - min_size_remaining_seq - 1
 
         for loc in range(start_next_seq, len(spring)):
@@ -156,8 +152,11 @@ def solve2(spring, order, seq):
                 if loc+i >= len(spring):
                     will_fit = False
                     try_next_loc = False
-                elif spring[loc+i] not in ['#', '?']:
+                    break
+                if spring[loc+i] not in ['#', '?']:
                     will_fit = False
+                    try_next_loc = True
+                    break
 
             # Check if after placing the sequence on this location, there is a dot
             idx_after_seq = loc + order[idx_next_seq]
@@ -166,7 +165,7 @@ def solve2(spring, order, seq):
                     will_fit = False
 
             # print("investigating", seq + [loc])
-            if will_fit:
+            if will_fit and try_next_loc:
                 solve2(spring, order, seq + [loc])
 
             # Only try next location if we can place a dot on this location or if there is already a dot
