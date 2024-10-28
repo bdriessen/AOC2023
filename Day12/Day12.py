@@ -213,27 +213,46 @@ def solve3(spring, order):
 
 
 def solve4(spring, order):
+    global nr_of_solutions
+
+    if len(order) == 0:
+        # This is a solution
+        for i in range(len(spring)):
+            if spring[i] == '#':
+                return 0
+        nr_of_solutions += 1
+        return 0
+
     # check all possible sequences of first element of order in spring, and then check if the rest fits
     seq = order[0]
+    still_possible = True
+
     for i in range(len(spring)):
-        # Check if the sequence fits
+
+        # Check if the  seq fits all places in the spring
         will_fit = True
         for j in range(seq):
             if i+j >= len(spring):
                 will_fit = False
+                return 0
             elif spring[i+j] == '.':
                 will_fit = False
-        if will_fit:
-            # Check if the rest of the sequence fits
-            if len(order) == 1:
-                if i+seq == len(spring):
-                    print("Found a solution")
-                else:
-                    print("Not a solution")
 
-            else
-                # Check if the rest of the sequence fits
-                solve4(spring[i:], order[1:])
+        # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
+        # of the spring), or if we arrived at the end of the springs
+        if will_fit:
+            if i+seq < len(spring):
+                if spring[i+seq] in ['.', '?']:
+                    solve4(spring[(i+seq+1):], order[1:])
+                else:
+                    # Not an allocation of the sequence, try next place
+                    continue
+            else:
+                # This is a solution
+                solve4(spring[(i+seq+1):], order[1:])
+        if spring[i] == '#':
+            return 0
+
     return 0
 
 
@@ -334,18 +353,9 @@ def part1_a(fname):
     ic(orders)
     # Find all possible allocation of first sequence in springs
     seq = orders[0]
-    for i in range(len(springs[0])):
-        # Check if the sequence fits
-        will_fit = True
-        for j in range(seq[0]):
-            if i+j >= len(springs[0]):
-                will_fit = False
-            elif springs[0][i+j] == '.':
-                will_fit = False
-        if will_fit:
-
     for i in range(len(springs)):
-
+        solve4(springs[i], orders[i])
+        ic(i, nr_of_solutions)
     return nr_of_solutions
 
 
@@ -374,7 +384,7 @@ def part2(fname):
     return total_nr_of_solutions
 
 
-real = False
+real = True
 verbose = True
 part = 1
 
