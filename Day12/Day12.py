@@ -131,6 +131,13 @@ def solve2(spring, order, seq):
             start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
             idx_next_seq = len(seq)
 
+        # Skip dots in front of the next sequence
+        if start_next_seq < len(spring):
+            while spring[start_next_seq] == '.':
+                start_next_seq += 1
+                if start_next_seq >= len(spring):
+                    return
+
         min_size_remaining_seq = 0
         for i in range(len(seq) + 1, len(order)):
             min_size_remaining_seq += order[i] + 1  # +1 because of the mandatory ?
@@ -173,6 +180,61 @@ def solve2(spring, order, seq):
                 break
 
     return
+
+
+def solve3(spring, order):
+    # Breadth first search implementation
+    # Start with empty sequence
+    nodes = []
+    node = {"id": spring[0], 'ch': [], 'amount': 0}
+    if spring[node['amount']] == '.':
+        node['ch'] = ['.']
+    elif spring[node['amount']] == '#':
+        node['ch'] = ['#']
+    else:
+        node['ch'] = ['.', '#']
+    nodes.append(node)
+    queue = [node]
+    visited = []
+
+    while queue:
+        # Dequeue a node
+        node = queue.pop(0)
+        # Check if the node is visited
+        if node not in visited:
+            visited.append(node)
+            # Get all neighbours of the node
+            children = get_children(node, spring, order)
+            # Add children to the queue
+            for child in children:
+                if still_possible(child, order):
+                    queue.append(child)
+    return 0
+
+
+def solve4(spring, order):
+    # check all possible sequences of first element of order in spring, and then check if the rest fits
+    seq = order[0]
+    for i in range(len(spring)):
+        # Check if the sequence fits
+        will_fit = True
+        for j in range(seq):
+            if i+j >= len(spring):
+                will_fit = False
+            elif spring[i+j] == '.':
+                will_fit = False
+        if will_fit:
+            # Check if the rest of the sequence fits
+            if len(order) == 1:
+                if i+seq == len(spring):
+                    print("Found a solution")
+                else:
+                    print("Not a solution")
+
+            else
+                # Check if the rest of the sequence fits
+                solve4(spring[i:], order[1:])
+    return 0
 
 
 def get_children(node, spring, order):
@@ -226,35 +288,6 @@ def get_children(node, spring, order):
                 child['ch'] = ['.', '#']
     return children
 
-def solve3(spring, order):
-    # Breadth first search implementation
-    # Start with empty sequence
-    nodes = []
-    node = {"id": spring[0], 'ch': [], 'amount': 0}
-    if spring[node['amount']] == '.':
-        node['ch'] = ['.']
-    elif spring[node['amount']] == '#':
-        node['ch'] = ['#']
-    else:
-        node['ch'] = ['.', '#']
-    nodes.append(node)
-    queue = [node]
-    visited = []
-
-    while queue:
-        # Dequeue a node
-        node = queue.pop(0)
-        # Check if the node is visited
-        if node not in visited:
-            visited.append(node)
-            # Get all neighbours of the node
-            children = get_children(node, spring, order)
-            # Add children to the queue
-            for child in children:
-                if still_possible(child, order):
-                    queue.append(child)
-    return 0
-
 
 def is_matching(seq, order, spring):
     sol_spring = ['.' for i in range(len(spring))]
@@ -293,6 +326,29 @@ def part1(fname):
     return total_nr_of_solutions
 
 
+def part1_a(fname):
+    global nr_of_solutions
+    springs, orders = read_input(fname)
+    nr_of_solutions = 0
+    ic(springs)
+    ic(orders)
+    # Find all possible allocation of first sequence in springs
+    seq = orders[0]
+    for i in range(len(springs[0])):
+        # Check if the sequence fits
+        will_fit = True
+        for j in range(seq[0]):
+            if i+j >= len(springs[0]):
+                will_fit = False
+            elif springs[0][i+j] == '.':
+                will_fit = False
+        if will_fit:
+
+    for i in range(len(springs)):
+
+    return nr_of_solutions
+
+
 # Part 2
 def part2(fname):
     global nr_of_solutions
@@ -319,8 +375,8 @@ def part2(fname):
 
 
 real = False
-verbose = False
-part = 2
+verbose = True
+part = 1
 
 solutions = []
 nr_of_solutions = 0
@@ -341,7 +397,7 @@ def main():
         fname = "testinput.txt"
 
     if part == 1:
-        res1 = part1(fname)
+        res1 = part1_a(fname)
         print("Part 1: ", res1)
     else:
         res2 = part2(fname)
