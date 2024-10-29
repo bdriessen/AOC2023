@@ -214,13 +214,16 @@ def solve3(spring, order):
 
 def solve4(spring, order):
     global nr_of_solutions
+#    ic("Solving", spring, order)
+    # if len(order) == 0:
+    #     # This is a solution
+    #     for i in range(len(spring)):
+    #         if spring[i] == '#':
+    #             return 0
+    #     nr_of_solutions += 1
+    #     return 0
 
     if len(order) == 0:
-        # This is a solution
-        for i in range(len(spring)):
-            if spring[i] == '#':
-                return 0
-        nr_of_solutions += 1
         return 0
 
     # check all possible sequences of first element of order in spring, and then check if the rest fits
@@ -228,7 +231,7 @@ def solve4(spring, order):
     still_possible = True
 
     for i in range(len(spring)):
-
+        ic(i, seq, spring, order)
         # Check if the  seq fits for all places in the spring, but stop if it cannot be realized anymore
         will_fit = True
         for j in range(seq):
@@ -238,19 +241,35 @@ def solve4(spring, order):
                 return 0
             elif spring[i+j] == '.':
                 will_fit = False
-
+                continue
+        ic("Will fit", will_fit)
         # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
         # of the spring), or if we arrived at the end of the springs
         if will_fit:
             # First check if the sequence is terminated with a '.' or a '?'
             if i+seq < len(spring):
                 if spring[i+seq] in ['.', '?']:
-                    print("Allocated seq:" + )
-                    solve4(spring[(i+seq+1):], order[1:])
+                    ic("Allocated seq:", seq)
+                    if len(order) > 1:
+                        solve4(spring[(i+seq+1):], order[1:])
+                    else:
+                        # We allocated all sequences.
+                        # This is a solution if the remainder of the springs does not contain a '#'
+                        for k in range(i+seq, len(spring)):
+                            if spring[k] == '#':
+                                return 0
+                        nr_of_solutions += 1
+
+                else:
+                    continue
+            elif i+seq == len(spring):
+                if len(order) ==1 :
+                    # We are at the end of the spring
+                    ic("Allocated seq at end of spring:", seq)
+                    nr_of_solutions += 1
+                    return 0
             else:
-                # We allocated all sequences.
-                # This is a solution if the remainder of the springs does not contain a '#'
-                solve4(spring[(i+seq):], order[1:])
+                return 0
         else:
             if spring[i] == '#':
                 # Do not shift if we create an unused '#'
@@ -407,7 +426,7 @@ def main():
     if real:
         fname = "input.txt"
     else:
-        fname = "testinput2.txt"
+        fname = "testinput.txt"
 
     if part == 1:
         res1 = part1_a(fname)
