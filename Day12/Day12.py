@@ -229,10 +229,11 @@ def solve4(spring, order):
 
     for i in range(len(spring)):
 
-        # Check if the  seq fits all places in the spring
+        # Check if the  seq fits for all places in the spring, but stop if it cannot be realized anymore
         will_fit = True
         for j in range(seq):
             if i+j >= len(spring):
+                # Beyond the end of the springs
                 will_fit = False
                 return 0
             elif spring[i+j] == '.':
@@ -241,17 +242,19 @@ def solve4(spring, order):
         # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
         # of the spring), or if we arrived at the end of the springs
         if will_fit:
+            # First check if the sequence is terminated with a '.' or a '?'
             if i+seq < len(spring):
                 if spring[i+seq] in ['.', '?']:
+                    print("Allocated seq:" + )
                     solve4(spring[(i+seq+1):], order[1:])
-                else:
-                    # Not an allocation of the sequence, try next place
-                    continue
             else:
-                # This is a solution
-                solve4(spring[(i+seq+1):], order[1:])
-        if spring[i] == '#':
-            return 0
+                # We allocated all sequences.
+                # This is a solution if the remainder of the springs does not contain a '#'
+                solve4(spring[(i+seq):], order[1:])
+        else:
+            if spring[i] == '#':
+                # Do not shift if we create an unused '#'
+                return 0
 
     return 0
 
@@ -384,7 +387,7 @@ def part2(fname):
     return total_nr_of_solutions
 
 
-real = True
+real = False
 verbose = True
 part = 1
 
@@ -404,7 +407,7 @@ def main():
     if real:
         fname = "input.txt"
     else:
-        fname = "testinput.txt"
+        fname = "testinput2.txt"
 
     if part == 1:
         res1 = part1_a(fname)
