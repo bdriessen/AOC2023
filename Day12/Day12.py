@@ -11,6 +11,8 @@ import numpy as np
 import time
 from icecream import ic
 
+from functools import cache
+
 # Read input file
 def read_input(fn):
     springs = []
@@ -219,7 +221,7 @@ def solve4(spring, order):
     seq = order[0]
 
     for i in range(len(spring)):
-        ic(i, seq, spring, order)
+        # ic(i, seq, spring, order)
         # Check if the  seq fits for all places in the spring, but stop if it cannot be realized anymore
         will_fit = True
         for j in range(seq):
@@ -229,7 +231,7 @@ def solve4(spring, order):
             elif spring[i+j] == '.':
                 will_fit = False
 
-        ic("Will fit", will_fit)
+        # ic("Will fit", will_fit)
         # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
         # of the spring), or if we arrived at the end of the springs
         if will_fit:
@@ -238,7 +240,7 @@ def solve4(spring, order):
                 # Check if the sequence is properly terminated
                 if spring[i+seq] in ['.', '?']:
                     # The sequence is properly terminated
-                    ic("Allocated seq:", seq)
+                    # ic("Allocated seq:", seq)
                     if len(order) > 1:
                         # We must allocate the next sequence
                         solve4(spring[(i+seq+1):], order[1:])
@@ -248,17 +250,13 @@ def solve4(spring, order):
                         post_dash = False
                         for k in range(i+seq, len(spring)):
                             if spring[k] == '#':
-                                ic("no solution due to post-dash")
+                                # ic("no solution due to post-dash")
                                 post_dash = True
                         if not post_dash:
                             # All sequences are allocated and the remainder of the spring does not contain a '#'
                             nr_of_solutions += 1
-                            ic('Solution found, not at the end, but no trailing #')
-                            ic(nr_of_solutions)
-                            continue
-                else:
-                    ic("no solution due to trailing-dash")
-                    continue
+                            # ic('Solution found, not at the end, but no trailing #')
+                            # ic(nr_of_solutions)
 
 
             elif i+seq == len(spring):
@@ -266,16 +264,16 @@ def solve4(spring, order):
                     # We are at the end of the sequences, and it fits!
 
                     nr_of_solutions += 1
-                    ic("Allocated seq at end of spring:", seq, nr_of_solutions)
+                    # ic("Allocated seq at end of spring:", seq, nr_of_solutions)
                     continue
                 else:
                     # We are at the end of the spring, but not at the end of the sequences
-                    ic("no solution due to end of spring")
+                    # ic("no solution due to end of spring")
                     break
 
         if spring[i] == '#':
             # Do not shift if we create an unused '#'
-            ic("Cannot shift since that will create an unused #", spring, i)
+            # ic("Cannot shift since that will create an unused #", spring, i)
             break
 
     return 0
@@ -400,18 +398,16 @@ def part2(fname):
     # ic(orders2)
 
     total_nr_of_solutions = 0
-    for i in range(len(springs)):
-        print("Solving spring", i)
-        nr_of_solutions = 0
-        solve2(springs2[i], orders2[i], [])
-        total_nr_of_solutions += nr_of_solutions
-        print(i, nr_of_solutions)
-    return total_nr_of_solutions
+    for i in range(len(springs2)):
+        order = orders2[i]
+        spring = springs2[i]
+        solve4(spring, order)
+        ic(i, nr_of_solutions)
+    return nr_of_solutions
 
-
-real = False
+real = True
 verbose = True
-part = 1
+part = 2
 
 solutions = []
 nr_of_solutions = 0
@@ -429,7 +425,7 @@ def main():
     if real:
         fname = "input.txt"
     else:
-        fname = "testinput2.txt"
+        fname = "testinput.txt"
 
     if part == 1:
         res1 = part1_a(fname)
