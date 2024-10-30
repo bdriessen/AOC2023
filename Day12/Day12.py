@@ -214,21 +214,9 @@ def solve3(spring, order):
 
 def solve4(spring, order):
     global nr_of_solutions
-#    ic("Solving", spring, order)
-    # if len(order) == 0:
-    #     # This is a solution
-    #     for i in range(len(spring)):
-    #         if spring[i] == '#':
-    #             return 0
-    #     nr_of_solutions += 1
-    #     return 0
-
-    if len(order) == 0:
-        return 0
 
     # check all possible sequences of first element of order in spring, and then check if the rest fits
     seq = order[0]
-    still_possible = True
 
     for i in range(len(spring)):
         ic(i, seq, spring, order)
@@ -238,42 +226,57 @@ def solve4(spring, order):
             if i+j >= len(spring):
                 # Beyond the end of the springs
                 will_fit = False
-                return 0
             elif spring[i+j] == '.':
                 will_fit = False
-                continue
+
         ic("Will fit", will_fit)
         # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
         # of the spring), or if we arrived at the end of the springs
         if will_fit:
             # First check if the sequence is terminated with a '.' or a '?'
-            if i+seq < len(spring):
+            if len(spring) > i+seq:
+                # Check if the sequence is properly terminated
                 if spring[i+seq] in ['.', '?']:
+                    # The sequence is properly terminated
                     ic("Allocated seq:", seq)
                     if len(order) > 1:
+                        # We must allocate the next sequence
                         solve4(spring[(i+seq+1):], order[1:])
                     else:
                         # We allocated all sequences.
-                        # This is a solution if the remainder of the springs does not contain a '#'
+                        # This only is a solution if the remainder of the springs does not contain a '#'
+                        post_dash = False
                         for k in range(i+seq, len(spring)):
                             if spring[k] == '#':
-                                return 0
-                        nr_of_solutions += 1
-
+                                ic("no solution due to post-dash")
+                                post_dash = True
+                        if not post_dash:
+                            # All sequences are allocated and the remainder of the spring does not contain a '#'
+                            nr_of_solutions += 1
+                            ic('Solution found, not at the end, but no trailing #')
+                            ic(nr_of_solutions)
+                            continue
                 else:
+                    ic("no solution due to trailing-dash")
                     continue
+
+
             elif i+seq == len(spring):
-                if len(order) ==1 :
-                    # We are at the end of the spring
-                    ic("Allocated seq at end of spring:", seq)
+                if len(order) == 1 :
+                    # We are at the end of the sequences, and it fits!
+
                     nr_of_solutions += 1
-                    return 0
-            else:
-                return 0
-        else:
-            if spring[i] == '#':
-                # Do not shift if we create an unused '#'
-                return 0
+                    ic("Allocated seq at end of spring:", seq, nr_of_solutions)
+                    continue
+                else:
+                    # We are at the end of the spring, but not at the end of the sequences
+                    ic("no solution due to end of spring")
+                    break
+
+        if spring[i] == '#':
+            # Do not shift if we create an unused '#'
+            ic("Cannot shift since that will create an unused #", spring, i)
+            break
 
     return 0
 
@@ -426,7 +429,7 @@ def main():
     if real:
         fname = "input.txt"
     else:
-        fname = "testinput.txt"
+        fname = "testinput2.txt"
 
     if part == 1:
         res1 = part1_a(fname)
