@@ -13,6 +13,7 @@ from icecream import ic
 
 from functools import cache
 
+
 # Read input file
 def read_input(fn):
     springs = []
@@ -35,186 +36,7 @@ def read_input(fn):
 
     return springs, orders
 
-
-def print_seq(seq: int, order: list, spring: str) -> None:
-    sol_spring = ['.' for i in range(len(spring))]
-    for i in range(len(seq)):
-        start = seq[i]
-        for j in range(order[i]):
-            sol_spring[start+j] = '#'
-
-    # print sol_spring string at the of the line overwriting the previous line
-    print("\033[F"*len(spring), end="")
-    # convert sol_spring to string
-    sol_spring = ''.join(sol_spring)
-    print(sol_spring)
-    return
-
-
-def solve(spring, order, seq):
-    global nr_of_solutions
-    #ic(seq)
-    seqs = []
-    if len(seq) == len(order):
-        #ic(seq)
-        #seqs.append(seq)
-        if is_matching(seq, order, spring):
-            #solutions.append(seq)
-            nr_of_solutions += 1
-            ic(nr_of_solutions, seq)
-            print(nr_of_solutions, seq)
-
-    else:
-        if not seq:
-            first_start_next_seq = 0
-            last_start_next_seq = len(spring) -1
-            min_size_remaining_seq = 0
-        else:
-            first_start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
-            # calculate last start next seq that might be useful
-            # Then calculate the minimum size of the remaining sequence
-            min_size_remaining_seq = 0
-            for i in range(len(seq)+1, len(order)):
-                min_size_remaining_seq += order[i] + 1 # +1 because of the mandatory ?
-            #ic(seq, min_size_remaining_seq)
-            # Then calculate the last useful index:
-            last_start_next_seq = len(spring) - min_size_remaining_seq - 1
-            #print("Last start", last_start_next_seq, seq)
-
-        for i in range(first_start_next_seq, last_start_next_seq+1):
-            will_not_fit = False
-
-            for j in range(order[len(seq)]):
-                if i+j >= len(spring):
-                    will_not_fit = True
-                elif spring[i+j] == '.':
-                    will_not_fit = True
-                after_seq_index = i + order[len(seq)]
-                if after_seq_index < len(spring):
-                    if spring[after_seq_index] in ['#', '?']:
-                        will_not_fit = True
-
-            if will_not_fit:
-                continue
-
-            #print(i)
-            #ic(i, seq, first_start_next_seq)
-            extension_possible = True
-            if i + order[len(seq)] > len(spring) - min_size_remaining_seq:
-                extension_possible = False
-
-            if extension_possible:
-                #print_seq(seq, order, spring)
-                # Solve for extended sequence
-                if i==first_start_next_seq and verbose:
-                    print("investigating", i, seq)
-                solve(spring, order, seq + [i])
-
-    #ic(seqs)
-    return
-
-
-def solve2(spring, order, seq):
-    global nr_of_solutions
-    #ic(seq)
-    if len(seq) == len(order):
-        #ic(seq)
-        if is_matching(seq, order, spring):
-            #solutions.append(seq)
-            nr_of_solutions += 1
-            ic(nr_of_solutions, seq)
-            #print(nr_of_solutions, seq)
-
-    else:
-        if not seq:
-            idx_next_seq = 0
-            start_next_seq = 0
-        else:
-            start_next_seq = seq[-1] + order[len(seq)-1] + 1  # +1 because of the dot
-            idx_next_seq = len(seq)
-
-        # Skip dots in front of the next sequence
-        if start_next_seq < len(spring):
-            while spring[start_next_seq] == '.':
-                start_next_seq += 1
-                if start_next_seq >= len(spring):
-                    return
-
-        min_size_remaining_seq = 0
-        for i in range(len(seq) + 1, len(order)):
-            min_size_remaining_seq += order[i] + 1  # +1 because of the mandatory ?
-        # ic(seq, min_size_remaining_seq)
-
-        # Then calculate the last useful index for placing the next sequence
-        last_start_next_seq = len(spring) - min_size_remaining_seq - 1
-
-        for loc in range(start_next_seq, len(spring)):
-            will_fit = True
-            try_next_loc = True
-
-            if loc > last_start_next_seq:
-                will_fit = False
-                try_next_loc = False
-
-            # Check if the entire sequence will fit
-            for i in range(order[idx_next_seq]):
-                if loc+i >= len(spring):
-                    will_fit = False
-                    try_next_loc = False
-                    break
-                if spring[loc+i] not in ['#', '?']:
-                    will_fit = False
-                    try_next_loc = True
-                    break
-
-            # Check if after placing the sequence on this location, there is a dot
-            idx_after_seq = loc + order[idx_next_seq]
-            if idx_after_seq < len(spring):
-                if spring[idx_after_seq] not in ['.', '?']:
-                    will_fit = False
-
-            # print("investigating", seq + [loc])
-            if will_fit and try_next_loc:
-                solve2(spring, order, seq + [loc])
-
-            # Only try next location if we can place a dot on this location or if there is already a dot
-            if spring[loc] == '#' or not try_next_loc:
-                break
-
-    return
-
-
-def solve3(spring, order):
-    # Breadth first search implementation
-    # Start with empty sequence
-    nodes = []
-    node = {"id": spring[0], 'ch': [], 'amount': 0}
-    if spring[node['amount']] == '.':
-        node['ch'] = ['.']
-    elif spring[node['amount']] == '#':
-        node['ch'] = ['#']
-    else:
-        node['ch'] = ['.', '#']
-    nodes.append(node)
-    queue = [node]
-    visited = []
-
-    while queue:
-        # Dequeue a node
-        node = queue.pop(0)
-        # Check if the node is visited
-        if node not in visited:
-            visited.append(node)
-            # Get all neighbours of the node
-            children = get_children(node, spring, order)
-            # Add children to the queue
-            for child in children:
-                if still_possible(child, order):
-                    queue.append(child)
-    return 0
-
-
-def solve4(spring: str, order: list) -> int:
+def solve(spring: str, order: tuple) -> int:
     global nr_of_solutions
 
     # check all possible sequences of first element of order in spring, and then check if the rest fits
@@ -243,7 +65,7 @@ def solve4(spring: str, order: list) -> int:
                     # ic("Allocated seq:", seq)
                     if len(order) > 1:
                         # We must allocate the next sequence
-                        solve4(spring[(i+seq+1):], order[1:])
+                        solve(spring[(i+seq+1):], order[1:])
                     else:
                         # We allocated all sequences.
                         # This only is a solution if the remainder of the springs does not contain a '#'
@@ -279,81 +101,6 @@ def solve4(spring: str, order: list) -> int:
     return 0
 
 
-def get_children(node, spring, order):
-    children = []
-
-    if len(node['ch']) == 1:
-        if node['ch'][0] == '.':
-            # Add child with a dot
-            id = node['id'] + '.'
-            child = {"id": id, 'ch': [], 'amount': node['amount']+1}
-            if node['amount'] < len(spring):
-                if spring[node['amount']] == '.':
-                    child['ch'] = ['.']
-                elif spring[node['amount']] == '#':
-                    child['ch'] = ['#']
-                else:
-                    child['ch'] = ['.', '#']
-            children.append(child)
-        else:
-            # Add child with a #
-            id = node['id'] + '#'
-            child = {"id": id, 'ch': [], 'amount': node['amount']+1}
-            if node['amount'] < len(spring):
-                if spring[node['amount']] == '.':
-                    child['ch'] = ['.']
-                elif spring[node['amount']] == '#':
-                    child['ch'] = ['#']
-                else:
-                    child['ch'] = ['.', '#']
-            children.append(child)
-    else:
-        # Add child with a dot and a child with a #
-        id = node['id'] + '.'
-        child = {"id": id, 'ch': [], 'amount': node['amount']+1}
-        if node['amount'] < len(spring):
-            if spring[node['amount']] == '.':
-                child['ch'] = ['.']
-            elif spring[node['amount']] == '#':
-                child['ch'] = ['#']
-            else:
-                child['ch'] = ['.', '#']
-        children.append(child)
-        id = node['id'] + '#'
-        child = {"id": id, 'ch': [], 'amount': node['amount']+1}
-        if node['amount'] < len(spring):
-            if spring[node['amount']] == '.':
-                child['ch'] = ['.']
-            elif spring[node['amount']] == '#':
-                child['ch'] = ['#']
-            else:
-                child['ch'] = ['.', '#']
-    return children
-
-
-def is_matching(seq, order, spring):
-    sol_spring = ['.' for i in range(len(spring))]
-    for i in range(len(seq)):
-        start = seq[i]
-        for j in range(order[i]):
-            sol_spring[start+j] = '#'
-
-    is_ok = True
-    for i in range(len(spring)):
-        if sol_spring[i] == '.' and spring[i] == '.':
-            continue
-        elif sol_spring[i] == '.' and spring[i] == '?':
-            continue
-        elif sol_spring[i] == '#' and spring[i] == '#':
-            continue
-        elif sol_spring[i] == '#' and spring[i] == '?':
-            continue
-        else:
-            is_ok = False
-            break
-    return is_ok
-
-
 # Part 1
 def part1(fname):
     global nr_of_solutions
@@ -362,7 +109,7 @@ def part1(fname):
     for i in range(len(springs)):
 
         nr_of_solutions = 0
-        solve2(springs[i], orders[i], [])
+        solve(springs[i], orders[i], [])
         total_nr_of_solutions += nr_of_solutions
         ic(i, nr_of_solutions)
     return total_nr_of_solutions
@@ -377,7 +124,7 @@ def part1_a(fname):
     # Find all possible allocation of first sequence in springs
     seq = orders[0]
     for i in range(len(springs)):
-        solve4(springs[i], orders[i])
+        solve(springs[i], tuple(orders[i]))
         ic(i, nr_of_solutions)
     return nr_of_solutions
 
@@ -401,9 +148,10 @@ def part2(fname):
     for i in range(len(springs2)):
         order = orders2[i]
         spring = springs2[i]
-        solve4(spring, order)
+        solve(spring, order)
         ic(i, nr_of_solutions)
     return nr_of_solutions
+
 
 real = True
 verbose = False
