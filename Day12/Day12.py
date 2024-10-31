@@ -36,7 +36,7 @@ def read_input(fn):
     return springs, orders
 
 
-def print_seq(seq, order, spring):
+def print_seq(seq: int, order: list, spring: str) -> None:
     sol_spring = ['.' for i in range(len(spring))]
     for i in range(len(seq)):
         start = seq[i]
@@ -214,7 +214,7 @@ def solve3(spring, order):
     return 0
 
 
-def solve4(spring, order):
+def solve4(spring: str, order: list) -> int:
     global nr_of_solutions
 
     # check all possible sequences of first element of order in spring, and then check if the rest fits
@@ -406,8 +406,8 @@ def part2(fname):
     return nr_of_solutions
 
 real = True
-verbose = True
-part = 2
+verbose = False
+part = 1
 
 solutions = []
 nr_of_solutions = 0
