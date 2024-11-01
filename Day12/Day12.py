@@ -36,76 +36,16 @@ def read_input(fn):
 
     return springs, orders
 
+
+
+@cache
 def solve(spring: str, order: tuple) -> int:
     global nr_of_solutions
 
     # check all possible sequences of first element of order in spring, and then check if the rest fits
     seq = order[0]
 
-    for i in range(len(spring)):
-        # ic(i, seq, spring, order)
-        # Check if the  seq fits for all places in the spring, but stop if it cannot be realized anymore
-        will_fit = True
-        for j in range(seq):
-            if i+j >= len(spring):
-                # Beyond the end of the springs
-                will_fit = False
-            elif spring[i+j] == '.':
-                will_fit = False
-
-        # ic("Will fit", will_fit)
-        # If the sequence fits, we still must check if the next token is not a # (if the we are not at the end
-        # of the spring), or if we arrived at the end of the springs
-        if will_fit:
-            # First check if the sequence is terminated with a '.' or a '?'
-            if len(spring) > i+seq:
-                # Check if the sequence is properly terminated
-                if spring[i+seq] in ['.', '?']:
-                    # The sequence is properly terminated
-                    # ic("Allocated seq:", seq)
-                    if len(order) > 1:
-                        # We must allocate the next sequence
-                        solve(spring[(i+seq+1):], order[1:])
-                    else:
-                        # We allocated all sequences.
-                        # This only is a solution if the remainder of the springs does not contain a '#'
-                        post_dash = False
-                        for k in range(i+seq, len(spring)):
-                            if spring[k] == '#':
-                                # ic("no solution due to post-dash")
-                                post_dash = True
-                        if not post_dash:
-                            # All sequences are allocated and the remainder of the spring does not contain a '#'
-                            nr_of_solutions += 1
-                            # ic('Solution found, not at the end, but no trailing #')
-                            # ic(nr_of_solutions)
-
-
-            elif i+seq == len(spring):
-                if len(order) == 1 :
-                    # We are at the end of the sequences, and it fits!
-
-                    nr_of_solutions += 1
-                    # ic("Allocated seq at end of spring:", seq, nr_of_solutions)
-                    continue
-                else:
-                    # We are at the end of the spring, but not at the end of the sequences
-                    # ic("no solution due to end of spring")
-                    break
-
-        if spring[i] == '#':
-            # Do not shift if we create an unused '#'
-            # ic("Cannot shift since that will create an unused #", spring, i)
-            break
-
-    return 0
-
-
-def solve2(spring: str, order: tuple) -> int:
-    global nr_of_solutions
-
-    # check all possible sequences of first element of order in spring, and then check if the rest fits
-    seq = order[0]
+    solutions = 0
 
     for i in range(len(spring)):
         # ic(i, seq, spring, order)
@@ -130,7 +70,7 @@ def solve2(spring: str, order: tuple) -> int:
                     # ic("Allocated seq:", seq)
                     if len(order) > 1:
                         # We must allocate the next sequence
-                        solve(spring[(i+seq+1):], order[1:])
+                        solutions += solve(spring[(i+seq+1):], order[1:])
                     else:
                         # We allocated all sequences.
                         # This only is a solution if the remainder of the springs does not contain a '#'
@@ -142,15 +82,16 @@ def solve2(spring: str, order: tuple) -> int:
                         if not post_dash:
                             # All sequences are allocated and the remainder of the spring does not contain a '#'
                             nr_of_solutions += 1
+                            solutions += 1
                             # ic('Solution found, not at the end, but no trailing #')
                             # ic(nr_of_solutions)
-
 
             elif i+seq == len(spring):
                 if len(order) == 1 :
                     # We are at the end of the sequences, and it fits!
 
                     nr_of_solutions += 1
+                    solutions += 1
                     # ic("Allocated seq at end of spring:", seq, nr_of_solutions)
                     continue
                 else:
@@ -163,35 +104,24 @@ def solve2(spring: str, order: tuple) -> int:
             # ic("Cannot shift since that will create an unused #", spring, i)
             break
 
-    return 0
+    return solutions
 
 
 # Part 1
+
 def part1(fname):
     global nr_of_solutions
     springs, orders = read_input(fname)
-    total_nr_of_solutions = 0
-    for i in range(len(springs)):
-
-        nr_of_solutions = 0
-        solve(springs[i], orders[i], [])
-        total_nr_of_solutions += nr_of_solutions
-        ic(i, nr_of_solutions)
-    return total_nr_of_solutions
-
-
-def part1_a(fname):
-    global nr_of_solutions
-    springs, orders = read_input(fname)
     nr_of_solutions = 0
+    sols = 0
     ic(springs)
     ic(orders)
     # Find all possible allocation of first sequence in springs
     seq = orders[0]
     for i in range(len(springs)):
-        solve(springs[i], tuple(orders[i]))
-        ic(i, nr_of_solutions)
-    return nr_of_solutions
+        sols += solve(springs[i], tuple(orders[i]))
+        ic(i, nr_of_solutions, sols)
+    return sols
 
 
 # Part 2
@@ -209,13 +139,14 @@ def part2(fname):
         orders2.append(new_order)
     # ic(orders2)
 
+    sols = 0
     total_nr_of_solutions = 0
     for i in range(len(springs2)):
         order = orders2[i]
         spring = springs2[i]
-        solve(spring, order)
+        sols += solve(spring, tuple(order))
         ic(i, nr_of_solutions)
-    return nr_of_solutions
+    return sols
 
 
 real = True
@@ -241,7 +172,7 @@ def main():
         fname = "testinput.txt"
 
     if part == 1:
-        res1 = part1_a(fname)
+        res1 = part1(fname)
         print("Part 1: ", res1)
     else:
         res2 = part2(fname)
