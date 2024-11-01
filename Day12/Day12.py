@@ -37,7 +37,6 @@ def read_input(fn):
     return springs, orders
 
 
-
 @cache
 def solve(spring: str, order: tuple) -> int:
     global nr_of_solutions
@@ -150,8 +149,9 @@ def part2(fname):
 
 
 real = True
-verbose = False
-part = 1
+verbose = True
+
+part = 2
 
 solutions = []
 nr_of_solutions = 0
