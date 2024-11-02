@@ -149,7 +149,7 @@ def part2(fname):
 
 
 real = True
-verbose = True
+verbose = False
 
 part = 2
 
