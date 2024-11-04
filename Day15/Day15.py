@@ -23,54 +23,114 @@ def read_input(fn):
 
     lines = [line.strip() for line in lines]
 
-    # Convert the lines to an array of an array of characters
-    for line in lines:
-        platform.append(list(line))
+    # Convert the line to a list of comma separated strings
+    strlist = [re.split(r',', line) for line in lines]
 
-    # Create a list rollers with the coordinates of the 'O' characeters
+    ic(strlist)
 
-    for i in range(len(platform)):
-        for j in range(len(platform[i])):
-            if platform[i][j] == 'O':
-                rollers.append([i,j])
-
-    # ic(platform, rollers)
-    return platform, rollers
+    return strlist
 
 def calc_score():
 
     return 0
 
+def hash(codestring, currentvalue):
+    for i in range(len(codestring)):
+        token = codestring[i]
+        currentvalue = currentvalue + ord(token)
+        currentvalue = currentvalue * 17
+        currentvalue = currentvalue % 256
+    return currentvalue
+
+def solve1(strlist):
+    total = 0
+    for codestring in strlist:
+        ic(codestring)
+        currentvalue = 0
+        currentvalue = hash(codestring, currentvalue)
+        ic(currentvalue)
+        total += currentvalue
+    return total
 
 
-def solve1():
-    return 0
+def score(hashlist):
+    total = 0
+    for i in range(256):
+        for j in range(len(hashlist[i])):
+            total += (i+1) * (j+1) * hashlist[i][j][1]
+    return total
 
-def solve2():
-    return 0
+def solve2(strlist):
+    # Create a list of 256 elements, each element can contain a list of [string, value]
+    # The list is initially empty
+    hashlist = [[] for i in range(256)]
+    for codestring in strlist:
+        # Split the codestring into label, operator and value, where label is the first characters not in ["=", "-"]
+        for i in range(len(codestring)):
+            if codestring[i] in ["=", "-"]:
+                break
+        label = codestring[0:i]
+        ic(label)
+        operator = codestring[i]
+        ic(operator)
+        value = 0
+        if operator == '=':
+            value = int(codestring[i+1:])
+
+        box = hash(label, 0)
+        ic(box, label, operator, value)
+        if operator == '-':
+            # Check if the label is in the hashlist[box] list. If so, remove it
+            for i in range(len(hashlist[box])):
+                if hashlist[box][i][0] == label:
+                    hashlist[box].pop(i)
+                    break
+        elif operator == '=':
+            # Check if the label is in the hashlist[box] list. If so, update the value
+            label_found = False
+            for i in range(len(hashlist[box])):
+                if hashlist[box][i][0] == label:
+                    hashlist[box][i][1] = value
+                    label_found = True
+                    break
+            # If the label is not in the hashlist[box] list, add it
+            if not label_found:
+                hashlist[box].append([label, value])
+        else:
+            continue
+
+        ic(hashlist[0])
+        ic(hashlist[1])
+        ic(hashlist[3])
+
+    # Calculate the total score
+    res = score(hashlist)
+
+    return res
 
 
 # Part 1
 
 def part1(fname):
     res = 0
-    read_input(fname)
-    res = solve1()
+    strlist = read_input(fname)
+    res = solve1(strlist[0])
     return res
 
 # Part 2
 def part2(fname):
     res = 0
-    read_input(fname)
-    res = solve2()
+    strlist = read_input(fname)
+    res = solve2(strlist[0])
 
     return res
 
 
-real = False
-verbose = True
+real = True
 
-part = 1
+verbose = False
+
+part = 2
 
 solutions = []
 nr_of_solutions = 0
