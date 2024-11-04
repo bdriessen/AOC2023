@@ -12,8 +12,9 @@ import time
 from icecream import ic
 
 import copy
-import map
-import foton
+from map import Map
+from foton import Foton
+
 
 # Read input file
 def read_input(fn):
@@ -27,7 +28,7 @@ def read_input(fn):
 
     # Convert the lines to lists of characters
     pattern = [list(line) for line in lines]
-    ic(pattern)
+    #ic(pattern)
 
     return pattern
 
@@ -57,21 +58,26 @@ def solve2():
 def part1(fname):
     res = 0
     pattern = read_input(fname)
-
-    return res
+    mymap = Map(pattern)
+    foton = Foton([0, 0], 'E')
+    mymap.add_foton(foton)
+    ic(mymap.map)
+    ic(mymap.fotons[0].pos, mymap.fotons[0].direction)
+    while len(mymap.fotons)!=0:
+        mymap.move_fotons()
+        ic(mymap.fotons)
+    return len(mymap.visited)
 
 # Part 2
 def part2(fname):
     res = 0
-    strlist = read_input(fname)
-    res = solve2(strlist[0])
 
     return 0
 
 
 real = False
 
-verbose = True
+verbose = False
 
 part = 1
 
