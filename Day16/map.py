@@ -17,8 +17,9 @@ class Map:
     def add_foton(self, foton):
         self.fotons.append(foton)
 
-    def init_fotons(self, foton):
+    def inject_foton(self, foton):
         # Enter the first foton
+        self.add_foton(foton)
         row = foton.pos[0]
         col = foton.pos[1]
         dir = foton.direction

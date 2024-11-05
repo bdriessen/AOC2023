@@ -59,13 +59,11 @@ def part1(fname):
     res = 0
     pattern = read_input(fname)
     mymap = Map(pattern)
-    if real:
-        foton = Foton([0, 0], 'S')
-    else:
-        foton = Foton([0, 0], 'E')
-    mymap.add_foton(foton)
-    mymap.visited[0][0] = 1
-    mymap.visited_east[0][0] = 1
+    foton = Foton([0, 0], 'E')
+    mymap.inject_foton(foton)
+    # mymap.add_foton(foton)
+    # mymap.visited[0][0] = 1
+    # mymap.visited_east[0][0] = 1
     ic(mymap.map)
     ic(mymap.fotons[0].pos, mymap.fotons[0].direction)
     while len(mymap.fotons)!=0:
@@ -82,15 +80,77 @@ def part1(fname):
 # Part 2
 def part2(fname):
     res = 0
-
-    return 0
+    pattern = read_input(fname)
+    energized = 0
+    most_energized = 0
+    # Enter from the top
+    for i in range(len(pattern[0])):
+        foton = Foton([0, i], 'S')
+        mymap = Map(pattern)
+        mymap.inject_foton(foton)
+        while len(mymap.fotons)!=0:
+            mymap.move_fotons()
+        # Count the number of visited cells
+        energized = 0
+        for row in mymap.visited:
+            for cell in row:
+                if cell == 1:
+                    energized += 1
+        if energized > most_energized:
+            most_energized = energized
+    # Enter from the bottom
+    for i in range(len(pattern[0])):
+        foton = Foton([len(pattern)-1, i], 'N')
+        mymap = Map(pattern)
+        mymap.inject_foton(foton)
+        while len(mymap.fotons)!=0:
+            mymap.move_fotons()
+        # Count the number of visited cells
+        energized = 0
+        for row in mymap.visited:
+            for cell in row:
+                if cell == 1:
+                    energized += 1
+        if energized > most_energized:
+            most_energized = energized
+    # Enter from the left
+    for i in range(len(pattern)):
+        foton = Foton([i, 0], 'E')
+        mymap = Map(pattern)
+        mymap.inject_foton(foton)
+        while len(mymap.fotons)!=0:
+            mymap.move_fotons()
+        # Count the number of visited cells
+        energized = 0
+        for row in mymap.visited:
+            for cell in row:
+                if cell == 1:
+                    energized += 1
+        if energized > most_energized:
+            most_energized = energized
+    # Enter from the right
+    for i in range(len(pattern)):
+        foton = Foton([i, len(pattern[0])-1], 'W')
+        mymap = Map(pattern)
+        mymap.inject_foton(foton)
+        while len(mymap.fotons)!=0:
+            mymap.move_fotons()
+        # Count the number of visited cells
+        energized = 0
+        for row in mymap.visited:
+            for cell in row:
+                if cell == 1:
+                    energized += 1
+        if energized > most_energized:
+            most_energized = energized
+    return most_energized
 
 
 real = True
 
 verbose = False
 
-part = 1
+part = 2
 
 solutions = []
 nr_of_solutions = 0
