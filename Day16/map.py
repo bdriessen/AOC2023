@@ -17,6 +17,55 @@ class Map:
     def add_foton(self, foton):
         self.fotons.append(foton)
 
+    def init_fotons(self, foton):
+        # Enter the first foton
+        row = foton.pos[0]
+        col = foton.pos[1]
+        dir = foton.direction
+        self.visited[row][col] = 1
+        if dir == 'N':
+            self.visited_north[row][col] = 1
+        elif dir == 'S':
+            self.visited_south[row][col] = 1
+        elif dir == 'E':
+            self.visited_east[row][col] = 1
+        elif dir == 'W':
+            self.visited_west[row][col] = 1
+
+        if self.map[row][col] == '|':
+            if dir == 'W' or dir == 'E':
+                foton.direction = 'N'
+                # Create a new foton
+                extra_foton = Foton([row, col], 'S')
+                self.add_foton(extra_foton)
+                self.visited_south[row][col] = 1
+        elif self.map[row][col] == '-':
+            if dir == 'N' or dir == 'S':
+                foton.direction = 'E'
+                # Create a new foton
+                extra_foton = Foton([row, col], 'W')
+                self.add_foton(extra_foton)
+                self.visited_west[row][col] = 1
+        elif self.map[row][col] == '/':
+            if dir == 'N':
+                foton.direction = 'E'
+            elif dir == 'S':
+                foton.direction = 'W'
+            elif dir == 'E':
+                foton.direction = 'N'
+            elif dir == 'W':
+                foton.direction = 'S'
+        elif self.map[row][col] == '\\':
+            if dir == 'N':
+                foton.direction = 'W'
+            elif dir == 'S':
+                foton.direction = 'E'
+            elif dir == 'E':
+                foton.direction = 'S'
+            elif dir == 'W':
+                foton.direction = 'N'
+
+
     def move_fotons(self):
         for foton in self.fotons:
             # Update position of foton
