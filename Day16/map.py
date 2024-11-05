@@ -64,7 +64,7 @@ class Map:
                 foton.direction = 'S'
             elif dir == 'W':
                 foton.direction = 'N'
-
+        # check above code if it is correct
 
     def move_fotons(self):
         for foton in self.fotons:
