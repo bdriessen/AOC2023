@@ -59,14 +59,25 @@ def part1(fname):
     res = 0
     pattern = read_input(fname)
     mymap = Map(pattern)
-    foton = Foton([0, 0], 'E')
+    if real:
+        foton = Foton([0, 0], 'S')
+    else:
+        foton = Foton([0, 0], 'E')
     mymap.add_foton(foton)
+    mymap.visited[0][0] = 1
+    mymap.visited_east[0][0] = 1
     ic(mymap.map)
     ic(mymap.fotons[0].pos, mymap.fotons[0].direction)
     while len(mymap.fotons)!=0:
         mymap.move_fotons()
         ic(mymap.fotons)
-    return len(mymap.visited)
+
+    # Count the number of visited cells
+    for row in mymap.visited:
+        for cell in row:
+            if cell == 1:
+                res += 1
+    return res
 
 # Part 2
 def part2(fname):
@@ -75,7 +86,7 @@ def part2(fname):
     return 0
 
 
-real = False
+real = True
 
 verbose = False
 
