@@ -206,81 +206,113 @@ def find_steps(pattern, step):
     row = step[0]
     col = step[1]
     prev_dir = step[2]
+    ic(step, prev_dir)
     newsteps = []
+    newheatloss = step[4]
+    ic(newheatloss)
     # Create steps for right turns
-    if prev_dir == 'E':
+    if prev_dir == 'E' or prev_dir == 'Y':
         new_dir = 'S'
-        for i in range(4, 11):
-            newrow = row
-            newcol = col + i
-            if newcol < pattern.shape[1]:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'S':
-        new_dir = 'W'
-        for i in range(4, 11):
+        for i in range(1, 11):
             newrow = row + i
             newcol = col
             if newrow < pattern.shape[0]:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'W':
-        new_dir = 'N'
-        for i in range(4, 11):
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+    elif prev_dir == 'S':
+        new_dir = 'W'
+        for i in range(1, 11):
             newrow = row
             newcol = col - i
             if newcol >= 0:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'N':
-        new_dir = 'E'
-        for i in range(4, 11):
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+    elif prev_dir == 'W':
+        new_dir = 'N'
+        for i in range(1, 11):
             newrow = row - i
             newcol = col
             if newrow >= 0:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+    elif prev_dir == 'N' or prev_dir == 'X':
+        new_dir = 'E'
+        for i in range(1, 11):
+            newrow = row
+            newcol = col + i
+            if newcol < pattern.shape[1]:
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+
     # Create steps for left turns
+    newheatloss = step[4]
     if prev_dir == 'E':
         new_dir = 'N'
-        for i in range(4, 11):
-            newrow = row
-            newcol = col + i
-            if newcol < pattern.shape[1]:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'S':
-        new_dir = 'E'
-        for i in range(4, 11):
-            newrow = row + i
-            newcol = col
-            if newrow < pattern.shape[0]:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'W':
-        new_dir = 'S'
-        for i in range(4, 11):
-            newrow = row
-            newcol = col - i
-            if newcol >= 0:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
-    elif prev_dir == 'N':
-        new_dir = 'W'
-        for i in range(4, 11):
+        for i in range(1, 11):
             newrow = row - i
             newcol = col
             if newrow >= 0:
-                newheatloss = step[4] + pattern[newrow, newcol]
-                newstep = [newrow, newcol, new_dir, i, newheatloss]
-                newsteps.append(newstep)
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+    elif prev_dir == 'S':
+        new_dir = 'E'
+        for i in range(1, 11):
+            newrow = row
+            newcol = col + i
+            if newcol < pattern.shape[1]:
+                ic(newrow, newcol, pattern[newrow, newcol], newheatloss)
+                if i < 4:
+
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+                ic(newrow, newcol, newheatloss)
+    elif prev_dir == 'W':
+        new_dir = 'S'
+        for i in range(1, 11):
+            newrow = row + i
+            newcol = col
+            if newrow < pattern.shape[0]:
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
+    elif prev_dir == 'N':
+        new_dir = 'W'
+        for i in range(1, 11):
+            newrow = row
+            newcol = col - i
+            if newcol >= 0:
+                if i < 4:
+                    newheatloss += pattern[newrow, newcol]
+                else:
+                    newheatloss += pattern[newrow, newcol]
+                    newstep = [newrow, newcol, new_dir, i, newheatloss]
+                    newsteps.append(newstep)
     return newsteps
 
 
@@ -288,50 +320,56 @@ def solve2(pattern):
     # A path is a list [row, col, direction, pathlenght, heatloss]. The pathlenght is the number of steps taken so far.
     steps = []
     visited  = {}
-    step = [0, 0, 'E', 0, 0]  # Start at row 0, col 0, direction East, pathlenght 0, heatloss defined in pattern[0,0]
+    step = [0, 0, 'X', 0, pattern[0, 0]]  # Start at row 0, col 0, direction East, pathlenght 0, heatloss defined in pattern[0,0]
     steps.append(step)
     visited[(0, 0, 'E', 0)] = pattern[0, 0]
 
-    step = [0, 0, 'S', 0, 0 ]  # Start at row 0, col 0, direction South, pathlenght 0, heatloss defined in pattern[0,0]
+    step = [0, 0, 'Y', 0, pattern[0, 0]]  # Start at row 0, col 0, direction South, pathlenght 0, heatloss defined in pattern[0,0]
     steps.append(step)
     visited[(0, 0, 'S', 0)] = pattern[0, 0]
 
     # First find the cutoff value for the heatloss
-    cutoff_heatloss = 791  # This is the value found in part 1
+    cutoff_heatloss = 10000000  # This is the value found in part 1
 
     # Now start the search
-    # Initiallly we can go east or south for 4-10 steps
-    allowed_steps = [4, 5, 6, 7, 8, 9, 10]
-    allowed_dirs = ['E', 'S']
     search_finished = False
     min_heatloss = cutoff_heatloss
 
+    test = find_steps(pattern, steps[0])
+    ic(test)
+    test = find_steps(pattern, test[4])
+    ic(test)
+    test = find_steps(pattern, test[0])
+    ic(test)
+    test = find_steps(pattern, test[5])
+    ic(test)
+
     while not search_finished:
-        newsteps = []
+        new_steps = []  # This is the list of steps that will be taken in the next iteration
         for step in steps:
-            ic(step)
-            next_steps = find_steps(pattern, step)
+            targets = find_steps(pattern, step)
+            for target in targets:
+                if target[4] <= cutoff_heatloss:
+                    if ((target[0], target[1], target[2], 0*target[3]) not in visited):
+                        new_steps.append(target)
+                        visited[(target[0], target[1], target[2], 0*target[3])] = target[4]
+                    elif target[4] < visited[(target[0], target[1], target[2], 0*target[3])]:
+                        new_steps.append(target)
+                        visited[(target[0], target[1], target[2], 0*target[3])] = target[4]
+                if target[0] == pattern.shape[0]-1 and target[1] == pattern.shape[1]-1:
+                    ic("Destination reached with heatloss: ", target[4])
+                    #paths.remove(neighbour)
+                    if target[4] < min_heatloss:
+                        min_heatloss = target[4]
+                        ic("New min_heatloss: ", min_heatloss)
 
-            for next_step in next_steps:
-                if next_step[4] <= cutoff_heatloss:
-                    if ((next_step[0], next_step[1], next_step[2], next_step[3]) not in visited):
-                        newsteps.append(next_step)
-                        visited[(next_step[0], next_step[1], next_step[2], next_step[3])] = next_step[4]
-                    elif visited[(next_step[0], next_step[1], next_step[2], next_step[3])] > next_step[4]:
-                        newsteps.append(next_step)
-                        visited[(next_step[0], next_step[1], next_step[2], next_step[3])] = next_step[4]
-            if step[0] == pattern.shape[0]-1 and step[1] == pattern.shape[1]-1:
-                ic("Destination reached with heatloss: ", step[4])
-                #paths.remove(neighbour)
-                if step[4] < min_heatloss:
-                    min_heatloss = step[4]
-                    ic("New min_heatloss: ", min_heatloss)
-        if len(newsteps) == 0:
+        if len(new_steps) == 0:
             search_finished = True
-        steps = newsteps
+        steps = new_steps
         #ic(paths)
+    ic(visited)
 
-    return min_heatloss
+    return min_heatloss - pattern[0, 0]
 
 
 
@@ -351,9 +389,9 @@ def part2(fname):
     return res
 
 
-real = False
+real = True
 
-verbose = True
+verbose = False
 
 part = 2
 
