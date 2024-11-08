@@ -17,19 +17,25 @@ import copy
 # Read input file
 def read_input(fn):
 
+
+    path = []
+    color = []
     with open(fn) as f:
         lines = f.readlines()
 
+
     lines = [line.strip() for line in lines]
+    # Split the line in tokens
+    for line in lines:
+        # Split the line in tokens seperated by space
+        tokens = line.split(" ")
+        path.append([tokens[0], int(tokens[1])])
+        color.append(tokens[2][1:-1])
+        ic(path, color)
 
-    # Convert to a 2D numpy array where each element is the decimal value of 1 character
-    pattern = np.array([[int(c) for c in line] for line in lines])
-    # Print sizeof pattern
-    print("Size of pattern: ", pattern.shape)
-    ic(pattern)
 
-    return pattern
 
+    return path, color
 
 def solve1():
 
@@ -53,7 +59,7 @@ def solve2():
 
 def part1(fname):
     res = 0
-    pattern = read_input(fname)
+    path, color = read_input(fname)
     res = solve1()
     return res
 
