@@ -64,38 +64,42 @@ def evaluate(workflows, part):
     a = part['a']
     s = part['s']
 
-
+    ic(workflows)
     label = 'in'
     ready = False
+    fires = False
     while not ready:
         actions = workflows[label]
         for i in range(len(actions)-1):
+
             ic(actions[i])
             fires = eval(actions[i][0])
-            ic(fires)
+
             if fires:
-                new_label = actions[i]
+                label = actions[i][1]
+                ic(fires, label)
                 break
-        new_label =
-    return actions[-1]
+        if not fires:
+            label = actions[-1][0]
+        if label == 'A' or label == 'R':
+            ready = True
+    return label
 
 
 def solve1(workflows, parts):
 
+    total_score = 0
     for part in parts:
-        evaluation_finished = False
-        while not evaluation_finished:
-            res = evaluate(workflows, part)
-            if res == 'A' or res == 'R':
-                evaluation_finished = True
-        ic(part, res)
+        check = evaluate(workflows, part)
+        if check == 'A':
+            total_score += score(part)
 
-    return 0
+    return total_score
 
 
-def score():
+def score(part):
 
-    return 0
+    return part['x'] + part['m'] + part['a'] + part['s']
 
 
 def solve2(path, codes):
@@ -124,8 +128,8 @@ def part2(fname):
 # Global variables
 #########################
 
-real = False
-verbose = True
+real = True
+verbose = False
 
 part = 1
 
