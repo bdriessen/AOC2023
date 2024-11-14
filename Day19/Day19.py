@@ -129,22 +129,29 @@ class Chunk():
             self.nxt_label = ""
 
 def process(lbl, lblstore, workflows):
+    # Process al the chunks for a single label
     labelstore = lblstore.copy()
     actions = workflows[lbl]
-    chunks = labelstore[lbl].copy()
+    chunks = labelstore[lbl]
+    modified = False
     newchunks = []
     removelist = []
 
     # Process the actions
     while len(chunks) > 0:
+        # Get the next chunk
         for action in actions:
-            ic(action, len(chunks))
-            if len(chunks) == 0:
-                break
-            ic(len(chunks), type(chunks[0]))
+            ic(action, len(action))
+            # After processing this chunk, it will be removed from the list
+            # New chunks will be created. A new chunk might apply for this label, but with different xmas values.
+            #if len(chunks) == 0:
+            #    continue
+            ic(chunks)
             chunk = chunks.pop(0)
-            ic(chunk, chunks)
+            ic(chunks)
+            # Check if the action is a condition or an else
             if len(action) == 2:
+                # This is the conditional statement
                 dest = action[1]
                 id = action[0][0]
                 oper = action[0][1]
@@ -152,34 +159,31 @@ def process(lbl, lblstore, workflows):
 
                 if oper == '<':
                     # Make a new chunk for the destination and update the current chunk
-                    triggered = False
                     left = copy_chunk(chunk)
                     left[id] = chunk[id] & P.closed(-P.inf, value-1)
                     ic(left)
                     if not left[id].empty:
-                        triggered = True
-                    if triggered:
-                        newchunks.append([dest, left])
+                        # The condition is true. So create a new chunk for the destination, and
+                        # update the current chunk. Store both chunks in the newchunks list.
                         right = copy_chunk(chunk)
-                        right[id] = chunk[id] & P.closed(value, P.inf)
+                        right[id] = chunk[id] & P.closed(value, P.inf)  # Here we update the remaining xmas value
                         ic(right)
-                        labelstore[lbl].remove(chunk)
                         newchunks.append([lbl, right])
+                        newchunks.append([dest, left])
                         ic(newchunks)
-                else:
-                    triggered = False
+                else: # oper == '>'
                     # Make a new chunk for the destination and update the current chunk
-                    right  = copy_chunk(chunk)
+                    right = copy_chunk(chunk)
                     right[id] = chunk[id] & P.closed(value+1, P.inf)
                     if not right[id].empty:
-                        triggered = True
-                    if triggered:
-                        newchunks.append([dest, right])
+                        # The condition is true. So create a new chunk for the destination, and
+                        # update the current chunk. Store both chunks in the newchunks list.
                         left = copy_chunk(chunk)
                         left[id] = chunk[id] & P.closed(-P.inf, value)
-                        labelstore[lbl].remove(chunk)
                         newchunks.append([lbl, left])
+                        newchunks.append([dest, right])
             else:
+                # No if condition is true. So we have to send the chunk to the destination
                 ic("removing chunk via else")
                 dest = action[0]
                 else_chunk = copy_chunk(chunk)
@@ -187,10 +191,10 @@ def process(lbl, lblstore, workflows):
                 oper = ""
                 value = 0
                 newchunks.append([dest, else_chunk])
-                labelstore[lbl].remove(chunk)
 
 
             while len(newchunks) > 0:
+                modified = True
                 newchunk = newchunks.pop(0)
                 loc = newchunk[0]
                 ic(loc, newchunk[1], labelstore[loc])
@@ -199,7 +203,7 @@ def process(lbl, lblstore, workflows):
                 ic(labelstore)
             newchunks = []
 
-    return labelstore
+    return labelstore, modified
 
 def copy_chunk(chunk):
     newchunk = {}
@@ -242,26 +246,11 @@ def solve2(workflows, parts):
     ic(labelstore)
     # Find the workflow for 'in'
     lbl = 'in'
+    modified = True
 
-    labelstore = process(lbl, labelstore, workflows)
-    #labelstore[lbl] = []
-    ic(labelstore)
-#    for newchunk in newchunks:
-#        labelstore[newchunk[0]].append(newchunk[1])
-#    for remove_chunk in removelist:
-#        labelstore[lbl].remove(remove_chunk)
-#    ic(labelstore)
-    labelstore = process(lbl, labelstore, workflows)
-    labelstore = process(lbl, labelstore, workflows)
-
-    #    labelstore[lbl] = []
-#    ic(newchunks, removelist)
-#    for newchunk in newchunks:
-#        labelstore[newchunk[0]].append(newchunk[1])
-#    for remove_chunk in removelist:
-#        labelstore[lbl].remove(remove_chunk)
-
-    ic(labelstore)
+    while modified:
+        labelstore, modified = process(lbl, labelstore, workflows)
+        ic(labelstore)
     return 0
 
     groupindex = 0
