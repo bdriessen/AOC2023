@@ -9,10 +9,14 @@
 import re
 import numpy as np
 import time
+
+import portion
 from icecream import ic
 
 
 import copy
+import portion as P
+from dataclasses import dataclass
 
 # Read input file
 def read_input(fn):
@@ -50,7 +54,7 @@ def read_input(fn):
 
             parts.append(part)
 
-    ic(workflows, parts)
+    # ic(workflows, parts)
 
 
 
@@ -97,13 +101,207 @@ def solve1(workflows, parts):
     return total_score
 
 
+
+
 def score(part):
 
     return part['x'] + part['m'] + part['a'] + part['s']
 
 
-def solve2(path, codes):
+@dataclass
+class Chunk():
 
+    nxt_label: str
+    def __init__(self, *args):
+        if len(args) == 4:
+            self.xmas = {}
+            self.xmas["x"] = args[0]
+            self.xmas["m"] = args[1]
+            self.xmas["a"] = args[2]
+            self.xmas["s"] = args[3]
+            self.nxt_label = ""
+        elif len(args) == 0:
+            self.xmas = {}
+            self.xmas["x"] = P.open(0,0)
+            self.xmas["m"] = P.open(0,0)
+            self.xmas["a"] = P.open(0,0)
+            self.xmas["s"] = P.open(0,0)
+            self.nxt_label = ""
+
+def process(lbl, lblstore, workflows):
+    labelstore = lblstore.copy()
+    actions = workflows[lbl]
+    chunks = labelstore[lbl].copy()
+    newchunks = []
+    removelist = []
+
+    # Process the actions
+    while len(chunks) > 0:
+        for action in actions:
+            ic(action, len(chunks))
+            if len(chunks) == 0:
+                break
+            ic(len(chunks), type(chunks[0]))
+            chunk = chunks.pop(0)
+            ic(chunk, chunks)
+            if len(action) == 2:
+                dest = action[1]
+                id = action[0][0]
+                oper = action[0][1]
+                value = int(action[0][2:])
+
+                if oper == '<':
+                    # Make a new chunk for the destination and update the current chunk
+                    triggered = False
+                    left = copy_chunk(chunk)
+                    left[id] = chunk[id] & P.closed(-P.inf, value-1)
+                    ic(left)
+                    if not left[id].empty:
+                        triggered = True
+                    if triggered:
+                        newchunks.append([dest, left])
+                        right = copy_chunk(chunk)
+                        right[id] = chunk[id] & P.closed(value, P.inf)
+                        ic(right)
+                        labelstore[lbl].remove(chunk)
+                        newchunks.append([lbl, right])
+                        ic(newchunks)
+                else:
+                    triggered = False
+                    # Make a new chunk for the destination and update the current chunk
+                    right  = copy_chunk(chunk)
+                    right[id] = chunk[id] & P.closed(value+1, P.inf)
+                    if not right[id].empty:
+                        triggered = True
+                    if triggered:
+                        newchunks.append([dest, right])
+                        left = copy_chunk(chunk)
+                        left[id] = chunk[id] & P.closed(-P.inf, value)
+                        labelstore[lbl].remove(chunk)
+                        newchunks.append([lbl, left])
+            else:
+                ic("removing chunk via else")
+                dest = action[0]
+                else_chunk = copy_chunk(chunk)
+                id = ""
+                oper = ""
+                value = 0
+                newchunks.append([dest, else_chunk])
+                labelstore[lbl].remove(chunk)
+
+
+            while len(newchunks) > 0:
+                newchunk = newchunks.pop(0)
+                loc = newchunk[0]
+                ic(loc, newchunk[1], labelstore[loc])
+                ic(labelstore)
+                labelstore[loc].append(newchunk[1])
+                ic(labelstore)
+            newchunks = []
+
+    return labelstore
+
+def copy_chunk(chunk):
+    newchunk = {}
+    newchunk["x"] = chunk["x"]
+    newchunk["m"] = chunk["m"]
+    newchunk["a"] = chunk["a"]
+    newchunk["s"] = chunk["s"]
+    return newchunk
+
+def make_chunk(x, m, a, s):
+    chunk = {}
+    chunk["x"] = x
+    chunk["m"] = m
+    chunk["a"] = a
+    chunk["s"] = s
+    return chunk
+
+def make_empty_chunk():
+    chunk = {}
+    chunk["x"] = P.open(0,0)
+    chunk["m"] = P.open(0,0)
+    chunk["a"] = P.open(0,0)
+    chunk["s"] = P.open(0,0)
+    return chunk
+
+def solve2(workflows, parts):
+
+    # Create a label store
+    ic(workflows)
+    labelstore = {}
+    for workflow in workflows:
+        labelstore[workflow[:]] = []
+    chunk = make_chunk(P.closed(1, 4000), P.closed(1, 4000),
+                       P.closed(1, 4000), P.closed(1, 4000))
+
+    ic(chunk)
+
+    labelstore['in'].append(chunk)
+
+    ic(labelstore)
+    # Find the workflow for 'in'
+    lbl = 'in'
+
+    labelstore = process(lbl, labelstore, workflows)
+    #labelstore[lbl] = []
+    ic(labelstore)
+#    for newchunk in newchunks:
+#        labelstore[newchunk[0]].append(newchunk[1])
+#    for remove_chunk in removelist:
+#        labelstore[lbl].remove(remove_chunk)
+#    ic(labelstore)
+    labelstore = process(lbl, labelstore, workflows)
+    labelstore = process(lbl, labelstore, workflows)
+
+    #    labelstore[lbl] = []
+#    ic(newchunks, removelist)
+#    for newchunk in newchunks:
+#        labelstore[newchunk[0]].append(newchunk[1])
+#    for remove_chunk in removelist:
+#        labelstore[lbl].remove(remove_chunk)
+
+    ic(labelstore)
+    return 0
+
+    groupindex = 0
+    actions = workflows[lbl]
+    ic(actions)
+
+    # Now divide the parts in groups
+    for action in actions:
+        if len(action) == 2:
+            dest = action[1]
+            id = action[0][0]
+            oper = action[0][1]
+            value = int(action[0][2:])
+            if oper == '<':
+                if id == 's':
+                    left = make_empty_chunk()
+                    left["s"] = labelstore[lbl][groupindex]["s"] & P.closed(-P.inf, value-1)
+                    left["m"] = labelstore[lbl][groupindex]["m"]
+                    left["a"] = labelstore[lbl][groupindex]["a"]
+                    left["x"] = labelstore[lbl][groupindex]["x"]
+                    ic(left)
+                    labelstore[dest].append(left)
+                    right = make_empty_chunk()
+                    right["s"] = labelstore[lbl][groupindex]["s"] & P.closed(value, P.inf)
+                    right["m"] = labelstore[lbl][groupindex]["m"]
+                    right["a"] = labelstore[lbl][groupindex]["a"]
+                    right["x"] = labelstore[lbl][groupindex]["x"]
+                    labelstore[lbl].pop(groupindex)
+                    labelstore[lbl].append(right)
+                    ic(right)
+        else:
+            dest = action[0]
+            id = ""
+            oper = ""
+            value = 0
+            chunk = labelstore[lbl][groupindex].copy()
+            labelstore[dest].append(labelstore[lbl][groupindex])
+            labelstore[lbl].pop(groupindex)
+        ic(dest, id, oper, value)
+        ic(labelstore)
     return 0
 
 
@@ -122,16 +320,17 @@ def part1(fname):
 def part2(fname):
     res = 0
     workflows, parts = read_input(fname)
+    workflows = dict(workflows)
     res = solve2(workflows, parts)
     return res
 #########################
 # Global variables
 #########################
 
-real = True
-verbose = False
+real = False
+verbose = True
 
-part = 1
+part = 2
 
 
 def main():
