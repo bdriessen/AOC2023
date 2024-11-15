@@ -34,7 +34,7 @@ def read_input(fn):
     for line in lines:
         if line != "" and line[0] != '{':
             # The label is the text until the first { character
-            label = line.split("{")[0]
+            label = line.split("{")[0] + "_"
             # WorkfloWs is the text between the { and the }
             workflow = line.split("{")[1].split("}")[0]
 
@@ -43,6 +43,11 @@ def read_input(fn):
             # Split token on : to get condition and action
             for i in range(len(tokens)):
                 tokens[i] = tokens[i].split(":")
+                ic(tokens[i])
+                if len(tokens[i]) == 2:
+                    tokens[i][1] += "_"
+                else:
+                    tokens[i][0] += "_"
             workflows.append([label, tokens])
 
         elif line != "":
@@ -129,6 +134,7 @@ class Chunk():
             self.nxt_label = ""
 
 def process(lbl, lblstore, workflows):
+    ic(lbl)
     # Process al the chunks for a single label
     labelstore = lblstore.copy()
     actions = workflows[lbl]
@@ -229,6 +235,19 @@ def make_empty_chunk():
     chunk["s"] = P.open(0,0)
     return chunk
 
+def calc_score2(chunks):
+    score = 0
+    for chunk in chunks:
+        size_x = chunk["x"].upper - chunk["x"].lower + 1
+        size_m = chunk["m"].upper - chunk["m"].lower + 1
+        size_a = chunk["a"].upper - chunk["a"].lower + 1
+        size_s = chunk["s"].upper - chunk["s"].lower + 1
+
+        combinations = size_x * size_m * size_a * size_s
+        score += combinations
+    return score
+
+
 def solve2(workflows, parts):
 
     # Create a label store
@@ -238,60 +257,43 @@ def solve2(workflows, parts):
         labelstore[workflow[:]] = []
     chunk = make_chunk(P.closed(1, 4000), P.closed(1, 4000),
                        P.closed(1, 4000), P.closed(1, 4000))
+    labelstore['in_'].append(chunk)
+    labelstore['A_'] = []
+    labelstore['R_'] = []
+    # labels is a list with the keys of the labelstore
+    labels = list(labelstore.keys())
+    ic(labels)
 
-    ic(chunk)
 
-    labelstore['in'].append(chunk)
 
     ic(labelstore)
     # Find the workflow for 'in'
-    lbl = 'in'
+    lbl = 'in_'
     modified = True
 
-    while modified:
-        labelstore, modified = process(lbl, labelstore, workflows)
-        ic(labelstore)
-    return 0
+    while True:
+        for label in labels:
+            if (label != 'A_') and (label != 'R_'):
+                labelstore, modified = process(label, labelstore, workflows)
+        # Count the number of non-empty lists in the labelstore
+        non_empty = 0
+        for label in labels:
+            if len(labelstore[label]) > 0:
+                non_empty += 1
+                ic(label)
+        ic(non_empty)
+        if non_empty == 2:
+            break
 
-    groupindex = 0
-    actions = workflows[lbl]
-    ic(actions)
+#    ic(labelstore)
+#    labelstore, modified = process('lnx_', labelstore, workflows)
 
-    # Now divide the parts in groups
-    for action in actions:
-        if len(action) == 2:
-            dest = action[1]
-            id = action[0][0]
-            oper = action[0][1]
-            value = int(action[0][2:])
-            if oper == '<':
-                if id == 's':
-                    left = make_empty_chunk()
-                    left["s"] = labelstore[lbl][groupindex]["s"] & P.closed(-P.inf, value-1)
-                    left["m"] = labelstore[lbl][groupindex]["m"]
-                    left["a"] = labelstore[lbl][groupindex]["a"]
-                    left["x"] = labelstore[lbl][groupindex]["x"]
-                    ic(left)
-                    labelstore[dest].append(left)
-                    right = make_empty_chunk()
-                    right["s"] = labelstore[lbl][groupindex]["s"] & P.closed(value, P.inf)
-                    right["m"] = labelstore[lbl][groupindex]["m"]
-                    right["a"] = labelstore[lbl][groupindex]["a"]
-                    right["x"] = labelstore[lbl][groupindex]["x"]
-                    labelstore[lbl].pop(groupindex)
-                    labelstore[lbl].append(right)
-                    ic(right)
-        else:
-            dest = action[0]
-            id = ""
-            oper = ""
-            value = 0
-            chunk = labelstore[lbl][groupindex].copy()
-            labelstore[dest].append(labelstore[lbl][groupindex])
-            labelstore[lbl].pop(groupindex)
-        ic(dest, id, oper, value)
-        ic(labelstore)
-    return 0
+    # Now we have to find the score
+    score = calc_score2(labelstore['A_'])
+
+
+    return score
+
 
 
 
@@ -316,8 +318,8 @@ def part2(fname):
 # Global variables
 #########################
 
-real = False
-verbose = True
+real = True
+verbose = False
 
 part = 2
 
