@@ -49,7 +49,7 @@ def read_input(fn):
             module_type = "other"
             module_name = tokens[0]
         #ic(module_name, module_type)
-        module = Module(module_name, module_type, [], [], [])
+        module = Module(module_name, module_type, [])
         #ic(module.name, module.type)
         modules.append(module)
         #ic(str(module))
@@ -80,7 +80,8 @@ def read_input(fn):
     # Finally, add the states
     for module in modules:
         for i in range(len(module.inp)):
-            module.state.append("Low")
+            module.pulses.append("")
+            module.states.append("Low")
     for module in modules:
         ic(str(module))
     return modules
@@ -91,7 +92,8 @@ class Module:
     type = ""
     inp = []
     out = []
-    state = []
+    states = []
+    pulses = []
     nlows = 0
     nhighs = 0
 
@@ -101,23 +103,96 @@ class Module:
             self.type = args[1]
             self.inp = []
             self.out = []
-            self.state = []
+            self.states = []
+            self.pulses = []
             nlows = 0
             nhighs = 0
-        elif len(args) == 5:
+        elif len(args) == 3:
             self.name = args[0]
             self.type = args[1]
             self.inp = args[2]
-            self.out = args[3]
-            self.state = args[4]
+            self.pulses = []
+            self.out = []
+            self.states = []
+
             nlows = 0
             nhighs = 0
     def __str__(self):
-        return f"Module: {self.name}, {self.type}, {self.inp}, {self.out}, {self.state}, {self.nlows}, {self.nhighs}"
+        return f"Module: Name={self.name}, Type={self.type}, In={self.inp}, Pulse={self.pulses}, Out={self.out}, State={self.states}, nl={self.nlows}, nh={self.nhighs}"
 
+    def update(self, modules):
+        # Update flip-flop
+        if self.type == "ff":
+            # Read the inputs
+            toggle = False
+            for i, pulse in enumerate(self.pulses):
+                if pulse == "Low":
+                    toggle = True
+            if toggle:
+                if self.states[0] == "Low":
+                    self.states[0] = "High"
+                    # Send a pulse to the destination
+                    self.send_pulse(modules, "High")
+                else:
+                    self.states[0] = "Low"
+                    # Send a pulse to the destination
+                    self.send_pulse(modules, "Low")
+            # Reset the pulses
+            for i, pulse in enumerate(self.pulses):
+                self.pulses[i] = ""
 
+        elif self.type == "cj":
+            # check if we received a pulse
+            for i, pulse in enumerate(self.pulses):
+                if pulse in ["High", "Low"]:
+                    self.states[i] = self.pulses[i]
 
-def solve1(workflows, parts):
+            send_high = True
+            for i, state in enumerate(self.states):
+                if state == "Low":
+                    send_high = False
+            if send_high:
+                self.send_pulse(modules, "High")
+            else:
+                self.send_pulse(modules, "Low")
+            # Reset the inputs
+            for i, input in enumerate(self.inp):
+                self.pulses[i] = ""
+
+    def send_pulse(self, modules, polarity):
+        # Send a pulse to the destination
+        # Find the module with the name dest
+        for dest in self.out:
+            for module in modules:
+                if module.name == dest:
+                    # Found the module that is connected to the source
+                    # Find which input of the module is connected to the source
+                    for i, inp in enumerate(module.inp):
+                        if inp == self.name:
+                            module.pulses[i] = polarity
+
+                    #ic(str(module))
+        return
+
+def solve1(modules):
+
+    # Find the broadcaster
+    broadcaster = None
+    for module in modules:
+        if module.name == "broadcaster":
+            broadcaster = module
+
+    broadcaster.send_pulse(modules, "Low")
+
+    # Update the modules
+    for module in modules:
+        module.update(modules)
+        ic(str(module))
+
+    # Update the modules
+    for module in modules:
+        module.update(modules)
+        ic(str(module))
 
     return 0
 
@@ -135,7 +210,8 @@ def score(part):
 
 def part1(fname):
     res = 0
-    res = read_input(fname)
+    modules = read_input(fname)
+    res = solve1(modules)
     # Convert workflows to a dictionary
     return res
 
