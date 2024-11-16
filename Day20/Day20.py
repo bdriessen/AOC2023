@@ -48,11 +48,11 @@ def read_input(fn):
         else:
             module_type = "other"
             module_name = tokens[0]
-        ic(module_name, module_type)
+        #ic(module_name, module_type)
         module = Module(module_name, module_type, [], [], [])
-        ic(module.name, module.type)
+        #ic(module.name, module.type)
         modules.append(module)
-        ic(str(module))
+        #ic(str(module))
 
     # Now, add the connections
     for line in lines:
@@ -61,11 +61,11 @@ def read_input(fn):
         if source.startswith("%") or source.startswith("&"):
             source = source[1:]
         dest = tokens[1]
-        # Split dest in tokens, contaiing the individual outputs
+        # Split dest in tokens, containing the individual outputs
         dest_tokens = dest.split(", ")
         # Find the module with the name source
         for index, module in enumerate(modules):
-            ic(module.name)
+            #ic(module.name)
             if module.name == source:
                 for token in dest_tokens:
                     module.out.append(token)
@@ -80,7 +80,7 @@ def read_input(fn):
     # Finally, add the states
     for module in modules:
         for i in range(len(module.inp)):
-            module.state.append(False)
+            module.state.append("Low")
     for module in modules:
         ic(str(module))
     return modules
@@ -92,6 +92,8 @@ class Module:
     inp = []
     out = []
     state = []
+    nlows = 0
+    nhighs = 0
 
     def __init__(self, *args, **kwargs):
         if len(args) == 2:
@@ -100,15 +102,18 @@ class Module:
             self.inp = []
             self.out = []
             self.state = []
+            nlows = 0
+            nhighs = 0
         elif len(args) == 5:
             self.name = args[0]
             self.type = args[1]
             self.inp = args[2]
             self.out = args[3]
             self.state = args[4]
-
+            nlows = 0
+            nhighs = 0
     def __str__(self):
-        return f"Module: {self.name}, {self.type}, {self.inp}, {self.out}, {self.state}"
+        return f"Module: {self.name}, {self.type}, {self.inp}, {self.out}, {self.state}, {self.nlows}, {self.nhighs}"
 
 
 
@@ -137,9 +142,7 @@ def part1(fname):
 # Part 2
 def part2(fname):
     res = 0
-    workflows, parts = read_input(fname)
-    workflows = dict(workflows)
-    res = solve2(workflows, parts)
+
     return res
 #########################
 # Global variables
