@@ -30,40 +30,85 @@ def read_input(fn):
 
     lines = [line.strip() for line in lines]
 
+    modules = []
+
     # Split the line in tokens
     for line in lines:
-        if line != "" and line[0] != '{':
-            # The label is the text until the first { character
-            label = line.split("{")[0] + "_"
-            # WorkfloWs is the text between the { and the }
-            workflow = line.split("{")[1].split("}")[0]
+        # Firs, create all the modules
+        tokens = line.split(" -> ")
+        if tokens[0] == "broadcaster":
+            module_type = "bc"
+            module_name = "broadcaster"
+        elif tokens[0][0] == "%":
+            module_type = "ff"
+            module_name = tokens[0][1:]
+        elif tokens[0][0] == "&":
+                module_type = "cj"
+                module_name = tokens[0][1:]
+        else:
+            module_type = "other"
+            module_name = tokens[0]
+        ic(module_name, module_type)
+        module = Module(module_name, module_type, [], [], [])
+        ic(module.name, module.type)
+        modules.append(module)
+        ic(str(module))
 
-            # split the line in tokens seperated by comma
-            tokens = workflow.split(",")
-            # Split token on : to get condition and action
-            for i in range(len(tokens)):
-                tokens[i] = tokens[i].split(":")
-                ic(tokens[i])
-                if len(tokens[i]) == 2:
-                    tokens[i][1] += "_"
-                else:
-                    tokens[i][0] += "_"
-            workflows.append([label, tokens])
+    # Now, add the connections
+    for line in lines:
+        tokens = line.split(" -> ")
+        source = tokens[0]
+        if source.startswith("%") or source.startswith("&"):
+            source = source[1:]
+        dest = tokens[1]
+        # Split dest in tokens, contaiing the individual outputs
+        dest_tokens = dest.split(", ")
+        # Find the module with the name source
+        for index, module in enumerate(modules):
+            ic(module.name)
+            if module.name == source:
+                for token in dest_tokens:
+                    module.out.append(token)
+                # ic(str(module))
+                # Find the modules with the names in dest_tokens
+                for dest_token in dest_tokens:
+                    for module2 in modules:
+                        if module2.name == dest_token:
+                            module2.inp.append(source)
+                            # ic(str(module2))
 
-        elif line != "":
-            exec_line = line.split("{")[1].split("}")[0]
-            # change , to ; to make it a valid python line
-            exec_line = exec_line.replace(",", ";")
-            exec(exec_line, globals())
-            part = {'x':x, 'm':m, 'a':a, 's':s}
-
-            parts.append(part)
-
-    # ic(workflows, parts)
+    # Finally, add the states
+    for module in modules:
+        for i in range(len(module.inp)):
+            module.state.append(False)
+    for module in modules:
+        ic(str(module))
+    return modules
 
 
+class Module:
+    name = ""
+    type = ""
+    inp = []
+    out = []
+    state = []
 
-    return workflows, parts
+    def __init__(self, *args, **kwargs):
+        if len(args) == 2:
+            self.name = args[0]
+            self.type = args[1]
+            self.inp = []
+            self.out = []
+            self.state = []
+        elif len(args) == 5:
+            self.name = args[0]
+            self.type = args[1]
+            self.inp = args[2]
+            self.out = args[3]
+            self.state = args[4]
+
+    def __str__(self):
+        return f"Module: {self.name}, {self.type}, {self.inp}, {self.out}, {self.state}"
 
 
 
@@ -72,7 +117,7 @@ def solve1(workflows, parts):
     return 0
 
 
-def solve2()
+def solve2():
     return 0
 
 def score(part):
@@ -85,10 +130,8 @@ def score(part):
 
 def part1(fname):
     res = 0
-    workflows, parts = read_input(fname)
+    res = read_input(fname)
     # Convert workflows to a dictionary
-    workflows = dict(workflows)
-    res = solve1(workflows, parts)
     return res
 
 # Part 2
