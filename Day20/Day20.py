@@ -88,13 +88,8 @@ def read_input(fn):
 
 
 class Module:
-    name = ""
-    type = ""
-    inp = []
-    out = []
-    states = []
-    pulses = []
-    nlows = 0
+    module_queue = []
+    nlows = 1
     nhighs = 0
 
     def __init__(self, *args, **kwargs):
@@ -105,8 +100,6 @@ class Module:
             self.out = []
             self.states = []
             self.pulses = []
-            nlows = 0
-            nhighs = 0
         elif len(args) == 3:
             self.name = args[0]
             self.type = args[1]
@@ -115,10 +108,8 @@ class Module:
             self.out = []
             self.states = []
 
-            nlows = 0
-            nhighs = 0
     def __str__(self):
-        return f"Module: Name={self.name}, Type={self.type}, In={self.inp}, Pulse={self.pulses}, Out={self.out}, State={self.states}, nl={self.nlows}, nh={self.nhighs}"
+        return f"{self.name}, {self.type}, In={self.inp}, Pu={self.pulses}, Out={self.out}, St={self.states}"
 
     def update(self, modules):
         # Update flip-flop
@@ -143,21 +134,35 @@ class Module:
 
         elif self.type == "cj":
             # check if we received a pulse
+            new_pulse = False
             for i, pulse in enumerate(self.pulses):
                 if pulse in ["High", "Low"]:
+                    new_pulse = True
                     self.states[i] = self.pulses[i]
 
-            send_high = True
-            for i, state in enumerate(self.states):
-                if state == "Low":
-                    send_high = False
-            if send_high:
-                self.send_pulse(modules, "High")
-            else:
-                self.send_pulse(modules, "Low")
+            if new_pulse:
+                all_states_high = True
+                for i, state in enumerate(self.states):
+                    if state == "Low":
+                        all_states_high = False
+                if all_states_high:
+                    self.send_pulse(modules, "Low")
+                else:
+                    self.send_pulse(modules, "High")
             # Reset the inputs
             for i, input in enumerate(self.inp):
                 self.pulses[i] = ""
+        elif self.type == "bc":
+            # send a pulse to all the outputs, but only do this if len(self.states) == 0
+            if len(self.states) == 0:
+                for dest in self.out:
+                    self.send_pulse(modules, "Low")
+                    ic("Sending from broadcaster to  ", dest)
+                self.states.append("Low")
+
+
+
+        return modules
 
     def send_pulse(self, modules, polarity):
         # Send a pulse to the destination
@@ -170,6 +175,12 @@ class Module:
                     for i, inp in enumerate(module.inp):
                         if inp == self.name:
                             module.pulses[i] = polarity
+                            ic(f"Sending pulse from {self.name} to {dest} with polarity {polarity}")
+                            Module.module_queue.append(dest)
+                            if polarity == "High":
+                                Module.nhighs += 1
+                            else:
+                                Module.nlows += 1
 
                     #ic(str(module))
         return
@@ -182,19 +193,27 @@ def solve1(modules):
         if module.name == "broadcaster":
             broadcaster = module
 
-    broadcaster.send_pulse(modules, "Low")
 
-    # Update the modules
-    for module in modules:
-        module.update(modules)
-        ic(str(module))
+    newmodules = modules
 
-    # Update the modules
-    for module in modules:
-        module.update(modules)
-        ic(str(module))
+    number_of_buttons = 1000
+    for buttonpressed in range(number_of_buttons):
+        broadcaster.send_pulse(modules, "Low")
 
-    return 0
+        # Update the modules
+
+        ic(Module.module_queue)
+
+        while len(Module.module_queue) > 0:
+            # Get the first module from the queue
+            module_name = Module.module_queue.pop(0)
+            for module in newmodules:
+                if module.name == module_name:
+                    newmodules = module.update(newmodules)
+
+    # Calculate the score
+    score = Module.nhighs * (Module.nlows+number_of_buttons)
+    return score
 
 
 def solve2():
@@ -242,7 +261,7 @@ def main():
     if real:
         fname = "input.txt"
     else:
-        fname = "testinput.txt"
+        fname = "testinput2.txt"
 
     if part == 1:
         res1 = part1(fname)
