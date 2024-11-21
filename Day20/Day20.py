@@ -97,6 +97,7 @@ def read_input(fn):
 
 
 class Module:
+    modules = []
     module_queue = []
     nlows = 0
     nhighs = 0
@@ -121,57 +122,10 @@ class Module:
     def __str__(self):
         return f"{self.name}, ({self.type}),  {self.inp}, Pu={self.pulses}, Out={self.out}, St={self.states}"
 
-    def update(self, modules):
-        # Update flip-flop
-        if self.type == "ff":
-            # Read the inputs
-            toggle = False
-            for i, pulse in enumerate(self.pulses):
-                if pulse == "Low":
-                    toggle = True
-            if toggle:
-                if self.states[0] == "Low":
-                    self.states[0] = "High"
-                    # Send a pulse to the destination
-                    self.send_pulse(modules, "High")
-                else:
-                    self.states[0] = "Low"
-                    # Send a pulse to the destination
-                    self.send_pulse(modules, "Low")
-            # Reset the pulses
-            for i, pulse in enumerate(self.pulses):
-                self.pulses[i] = ""
 
-        elif self.type == "cj":
-            # check if we received a pulse
-            new_pulse = False
-            for i, pulse in enumerate(self.pulses):
-                if pulse in ["High", "Low"]:
-                    new_pulse = True
-                    self.states[i] = self.pulses[i]
-                    self.pulses[i] = ""
 
-            if new_pulse:
-                all_states_high = True
-                for i, state in enumerate(self.states):
-                    if state == "Low":
-                        all_states_high = False
-                if all_states_high:
-                    self.send_pulse(modules, "Low")
-                else:
-                    self.send_pulse(modules, "High")
-                
-        elif self.type == "bc":
-            # send a pulse to all the outputs, but only do this if len(self.states) == 0
-            if len(self.states) == 0:
-                for dest in self.out:
-                    self.send_pulse(modules, "Low")
-                    ic("Sending from broadcaster to  ", dest)
-                self.states.append("Low")
-
-        return modules
-
-    def update2(self, modules):
+    def update(self):
+        modules = Module.modules
         # Updates the state of the module (self). If it has to send a pulse, it will place the pulse in de module_queue
 
         # Update flip-flop
@@ -225,101 +179,48 @@ class Module:
                     ic("Sending from broadcaster to  ", dest)
                 self.states.append("Low")
 
-        return modules
-
-    def send_pulse(self, modules, polarity):
-        # Send a pulse to the destination
-        # Find the module with the name dest
-        for dest in self.out:
-            for module in modules:
-                if module.name == dest:
-                    # Found the module that is connected to the source
-                    # Find which input of the module is connected to the source
-                    for i, inp in enumerate(module.inp):
-                        if inp == self.name:
-                            module.pulses[i] = polarity
-                            ic(f"{self.name} -{polarity} ->{dest}")
-                            Module.module_queue.append(dest)
-                            if polarity == "High":
-                                Module.nhighs += 1
-                            else:
-                                Module.nlows += 1
-
-                    #ic(str(module))
         return
 
 
-def send_pulse_from_queue(modules):
+    def send_pulse(self, dest, polarity):
+        src = self.name
+        modules = Module.modules
+        # Send a pulse to all connected destination modules
+        for module in modules:
+            if src in module.inp:
+                # Found the module that is connected to the source
+                # Find which input of the module is connected to the source
+                for i, inp in enumerate(module.inp):
+                    if inp == src:
+                        module.pulses[i] = polarity
+                        ic(f"{src} -{polarity} ->{module.name}")
+                        if polarity == "High":
+                            Module.nhighs += 1
+                        else:
+                            Module.nlows += 1
+        return modules
+
+
+def send_pulse_from_queue():
+    modules = Module.modules
     for action in Module.module_queue:
         src = action[0]
         dest = action[1]
         polarity = action[2]
-        modules = send_pulse2(src, dest, polarity, modules)
-    return modules
-
-def send_pulse2(src, dest, polarity, modules):
-
-    # Send a pulse to all connected destination modules
-    for module in modules:
-        if src in module.inp:
-            # Found the module that is connected to the source
-            # Find which input of the module is connected to the source
-            for i, inp in enumerate(module.inp):
-                if inp == src:
-                    module.pulses[i] = polarity
-                    ic(f"{src} -{polarity} ->{module.name}")
-                    if polarity == "High":
-                        Module.nhighs += 1
-                    else:
-                        Module.nlows += 1
-    return modules
+        for module in modules:
+            if module.name == src:
+                module.send_pulse(dest, polarity)
+    Module.module_queue = []
+    return
 
 
-def solve1(modules):
-
+def solve1():
+    modules = Module.modules
     # Find the broadcaster
     broadcaster = None
     for module in modules:
         if module.name == "broadcaster":
             broadcaster = module
-
-
-    newmodules = modules
-
-    number_of_buttons = 5
-    for buttonpressed in range(number_of_buttons):
-        Module.nlows += 1  # The button is pressed
-        broadcaster.states = []
-        Module.module_queue.append("broadcaster", "Low")
-        broadcaster.send_pulse(modules, "Low")
-
-        # Update the modules
-
-        ic(buttonpressed, Module.module_queue)
-
-        while len(Module.module_queue) > 0:
-            # Get the first module from the queue
-            module_name = Module.module_queue.pop(0)
-            for i in range(len(newmodules)):
-                if newmodules[i].name == module_name:
-                    newmodules = newmodules[i].update(newmodules)
-
-
-    # Calculate the score
-    score = Module.nhighs * Module.nlows
-    ic(Module.nlows, Module.nhighs, score)
-    return score
-
-def solve2(modules):
-
-    # Find the broadcaster
-    broadcaster = None
-    for module in modules:
-        if module.name == "broadcaster":
-            broadcaster = module
-
-
-    newmodules = modules
 
     number_of_buttons = 5
     for buttonpressed in range(number_of_buttons):
@@ -332,10 +233,10 @@ def solve2(modules):
 
         #ic(buttonpressed, Module.module_queue)
 
-        newmodules = send_pulse_from_queue(newmodules)
+        send_pulse_from_queue()
 
-        for module in newmodules:
-            module.update2(newmodules)
+        for module in modules:
+            module.update()
 
 
     # Calculate the score
@@ -354,8 +255,8 @@ def score(part):
 
 def part1(fname):
     res = 0
-    modules = read_input(fname)
-    res = solve2(modules)
+    Module.modules = read_input(fname)
+    res = solve1()
     # Convert workflows to a dictionary
     return res
 
