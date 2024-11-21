@@ -201,7 +201,7 @@ class Module:
         return modules
 
 
-def send_pulse_from_queue():
+def send_pulses_from_queue():
     modules = Module.modules
     for action in Module.module_queue:
         src = action[0]
@@ -233,7 +233,7 @@ def solve1():
 
         #ic(buttonpressed, Module.module_queue)
 
-        send_pulse_from_queue()
+        send_pulses_from_queue()
 
         for module in modules:
             module.update()
